@@ -1261,13 +1261,20 @@ frame_unwind_register_value (frame_info *next_frame, int regnum)
 	  else
 	    {
 	      int i;
-	      gdb::array_view<const gdb_byte> buf = value_contents (value);
+	      const gdb_byte *buf = NULL;
+	      if (value_entirely_available(value)) {
+	        gdb::array_view<const gdb_byte> buf = value_contents (value);
+	      }
 
-	      fprintf_unfiltered (&debug_file, " bytes=");
-	      fprintf_unfiltered (&debug_file, "[");
-	      for (i = 0; i < register_size (gdbarch, regnum); i++)
-		fprintf_unfiltered (&debug_file, "%02x", buf[i]);
-	      fprintf_unfiltered (&debug_file, "]");
+	      fprintf_unfiltered (gdb_stdlog, " bytes=");
+	      fprintf_unfiltered (gdb_stdlog, "[");
+	      if (buf != NULL) {
+	        for (i = 0; i < register_size (gdbarch, regnum); i++)
+		  fprintf_unfiltered (gdb_stdlog, "%02x", buf[i]);
+	      } else {
+	        fprintf_unfiltered (gdb_stdlog, "unavailable");
+	      }
+	      fprintf_unfiltered (gdb_stdlog, "]");
 	    }
 	}
 
