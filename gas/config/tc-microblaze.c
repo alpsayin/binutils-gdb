@@ -37,6 +37,8 @@
 
 #define OPTION_EB (OPTION_MD_BASE + 0)
 #define OPTION_EL (OPTION_MD_BASE + 1)
+#define OPTION_LITTLE (OPTION_MD_BASE + 2)
+#define OPTION_BIG (OPTION_MD_BASE + 3)
 
 void microblaze_generate_symbol (char *sym);
 static bool check_spl_reg (unsigned *);
@@ -1854,6 +1856,8 @@ struct option md_longopts[] =
 {
   {"EB", no_argument, NULL, OPTION_EB},
   {"EL", no_argument, NULL, OPTION_EL},
+  {"mlittle-endian", no_argument, NULL, OPTION_LITTLE},
+  {"mbig-endian", no_argument, NULL, OPTION_BIG},
   { NULL,          no_argument, NULL, 0}
 };
 
@@ -2507,9 +2511,11 @@ md_parse_option (int c, const char * arg ATTRIBUTE_UNUSED)
   switch (c)
     {
     case OPTION_EB:
+    case OPTION_BIG:
       target_big_endian = 1;
       break;
     case OPTION_EL:
+    case OPTION_LITTLE:
       target_big_endian = 0;
       break;
     default:
@@ -2524,6 +2530,9 @@ md_show_usage (FILE * stream ATTRIBUTE_UNUSED)
   /*  fprintf(stream, _("\
       MicroBlaze options:\n\
       -noSmall         Data in the comm and data sections do not go into the small data section\n")); */
+  fprintf (stream, _(" MicroBlaze specific assembler options:\n"));
+  fprintf (stream, "  -%-23s%s\n", "mbig-endian", N_("assemble for a big endian cpu"));
+  fprintf (stream, "  -%-23s%s\n", "mlittle-endian", N_("assemble for a little endian cpu"));
 }
 
 
