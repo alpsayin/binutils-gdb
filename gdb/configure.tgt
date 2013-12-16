@@ -421,6 +421,7 @@ microblaze*-linux-*|microblaze*-*-linux*)
 microblaze*-*-*)
 	# Target: Xilinx MicroBlaze running standalone
 	gdb_target_obs="microblaze-tdep.o"
+	build_gdbserver=yes
 	;;
 
 mips*-*-linux*)
