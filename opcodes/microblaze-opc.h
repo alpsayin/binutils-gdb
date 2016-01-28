@@ -102,7 +102,7 @@
 #define DELAY_SLOT 1
 #define NO_DELAY_SLOT 0
 
-#define MAX_OPCODES 291
+#define MAX_OPCODES 299
 
 const struct op_code_struct
 {
