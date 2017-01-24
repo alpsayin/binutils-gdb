@@ -666,6 +666,43 @@ microblaze_register_g_packet_guesses (struct gdbarch *gdbarch)
 				  tdesc_microblaze_with_stack_protect);
 }
 
+void
+microblaze_supply_gregset (const struct regset *regset,
+                        struct regcache *regcache,
+                        int regnum, const void *gregs)
+{
+  const unsigned int *regs = (const unsigned int *)gregs;
+  if (regnum >= 0)
+    regcache->raw_supply (regnum, regs + regnum);
+
+  if (regnum == -1) {
+    int i;
+
+    for (i = 0; i < 50; i++) {
+      regcache->raw_supply (i, regs + i);
+    }
+  }
+}
+
+
+/* Return the appropriate register set for the core section identified
+   by SECT_NAME and SECT_SIZE.  */
+
+static void
+microblaze_iterate_over_regset_sections (struct gdbarch *gdbarch,
+                                     iterate_over_regset_sections_cb *cb,
+                                     void *cb_data,
+                                     const struct regcache *regcache)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  cb(".reg", tdep->sizeof_gregset, tdep->sizeof_gregset, tdep->gregset, NULL, cb_data);
+
+  cb(".reg2", tdep->sizeof_fpregset, tdep->sizeof_fpregset, tdep->fpregset, NULL, cb_data);
+}
+
+
+
 static struct gdbarch *
 microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 {
@@ -718,6 +755,10 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   microblaze_gdbarch_tdep *tdep = new microblaze_gdbarch_tdep;
   gdbarch = gdbarch_alloc (&info, tdep);
 
+  tdep->gregset = NULL;
+  tdep->sizeof_gregset = 0;
+  tdep->fpregset = NULL;
+  tdep->sizeof_fpregset = 0;
   set_gdbarch_long_double_bit (gdbarch, 128);
 
   set_gdbarch_num_regs (gdbarch, MICROBLAZE_NUM_REGS);
@@ -766,6 +807,13 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   frame_base_append_sniffer (gdbarch, dwarf2_frame_base_sniffer);
   if (tdesc_data != NULL)
     tdesc_use_registers (gdbarch, tdesc, std::move (tdesc_data));
+  //frame_base_append_sniffer (gdbarch, microblaze_frame_sniffer);
+
+  /* If we have register sets, enable the generic core file support.  */
+  if (tdep->gregset) {
+    set_gdbarch_iterate_over_regset_sections (gdbarch,
+                                          microblaze_iterate_over_regset_sections);
+  }
 
   return gdbarch;
 }
