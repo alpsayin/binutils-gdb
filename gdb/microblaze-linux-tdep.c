@@ -36,6 +36,7 @@
 #include "frame-unwind.h"
 #include "tramp-frame.h"
 #include "linux-tdep.h"
+#include "glibc-tdep.h"
 
 static int microblaze_debug_flag = 0;
 
@@ -135,11 +136,14 @@ static struct tramp_frame microblaze_linux_sighandler_tramp_frame =
   microblaze_linux_sighandler_cache_init
 };
 
-
 static void
 microblaze_linux_init_abi (struct gdbarch_info info,
 			   struct gdbarch *gdbarch)
 {
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  tdep->sizeof_gregset = 200;
+
   linux_init_abi (info, gdbarch, 0);
 
   set_gdbarch_memory_remove_breakpoint (gdbarch,
@@ -152,6 +156,17 @@ microblaze_linux_init_abi (struct gdbarch_info info,
   /* Trampolines.  */
   tramp_frame_prepend_unwinder (gdbarch,
 				&microblaze_linux_sighandler_tramp_frame);
+
+  /* BFD target for core files.  */
+  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+    set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblaze");
+  else
+    set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblazeel");
+
+
+  /* Shared library handling.  */
+  set_gdbarch_skip_trampoline_code (gdbarch, find_solib_trampoline_target);
+  set_gdbarch_skip_solib_resolver (gdbarch, glibc_skip_solib_resolver);
 
   /* Enable TLS support.  */
   set_gdbarch_fetch_tls_load_module_address (gdbarch,
