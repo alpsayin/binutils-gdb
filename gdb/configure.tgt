@@ -389,7 +389,7 @@ mep-*-*)
 
 microblaze*-linux-*|microblaze*-*-linux*)
 	# Target: Xilinx MicroBlaze running Linux
-	gdb_target_obs="microblaze-tdep.o microblaze-linux-tdep.o solib-svr4.o \
+	gdb_target_obs="microblaze-tdep.o microblaze-linux-tdep.o solib-svr4.o glibc-tdep.o \
 			symfile-mem.o linux-tdep.o"
 	;;
 microblaze*-*-*)
