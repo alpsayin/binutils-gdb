@@ -29,6 +29,7 @@ struct microblaze_gdbarch_tdep : gdbarch_tdep
 
 struct microblaze_gregset
 {
+   microblaze_gregset() {}
    unsigned int gregs[32];
    unsigned int fpregs[32];
    unsigned int pregs[16];

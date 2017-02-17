@@ -39,10 +39,11 @@ static int microblaze_regmap[] =
   PT_FSR
   };
 
-#define microblaze_num_regs (sizeof microblaze_regmap / sizeof microblaze_regmap[0])
+#define microblaze_num_regs (sizeof (microblaze_regmap) / sizeof (microblaze_regmap[0]))
 
 /* Defined in auto-generated file microblaze-linux.c.  */
 void init_registers_microblaze (void);
+extern const struct target_desc *tdesc_microblaze;
 
 static int
 microblaze_cannot_store_register (int regno)
@@ -81,6 +82,15 @@ microblaze_set_pc (struct regcache *regcache, CORE_ADDR pc)
 static const unsigned long microblaze_breakpoint = 0xba0c0018;
 #define microblaze_breakpoint_len 4
 
+/* Implementation of linux_target_ops method "sw_breakpoint_from_kind".  */
+
+static const gdb_byte *
+microblaze_sw_breakpoint_from_kind (int kind, int *size)
+{
+  *size = microblaze_breakpoint_len;
+  return (const gdb_byte *) &microblaze_breakpoint;
+}
+
 static int
 microblaze_breakpoint_at (CORE_ADDR where)
 {
@@ -107,7 +117,7 @@ microblaze_reinsert_addr (struct regcache *regcache)
 static void
 microblaze_collect_ptrace_register (struct regcache *regcache, int regno, char *buf)
 {
-  int size = register_size (regno);
+  int size = register_size (regcache->tdesc, regno);
 
   memset (buf, 0, sizeof (long));
 
@@ -121,7 +131,7 @@ static void
 microblaze_supply_ptrace_register (struct regcache *regcache,
 			    int regno, const char *buf)
 {
-  int size = register_size (regno);
+  int size = register_size (regcache->tdesc, regno);
 
   if (regno == 0) {
     unsigned long regbuf_0 = 0;
@@ -157,33 +167,94 @@ microblaze_store_gregset (struct regcache *regcache, const void *buf)
 
 #endif /* HAVE_PTRACE_GETREGS */
 
-struct regset_info target_regsets[] = {
+static struct regset_info microblaze_regsets[] = {
 #ifdef HAVE_PTRACE_GETREGS
   { PTRACE_GETREGS, PTRACE_SETREGS, 0, sizeof (elf_gregset_t), GENERAL_REGS, microblaze_fill_gregset, microblaze_store_gregset },
-  { 0, 0, 0, -1, -1, NULL, NULL },
+  { 0, 0, 0, -1, GENERAL_REGS, NULL, NULL },
 #endif /* HAVE_PTRACE_GETREGS */
-  { 0, 0, 0, -1, -1, NULL, NULL }
+  { 0, 0, 0, -1, GENERAL_REGS, NULL, NULL },
+  NULL_REGSET
 };
 
+static struct usrregs_info microblaze_usrregs_info =
+  {
+    microblaze_num_regs,
+    microblaze_regmap,
+  };
+
+static struct regsets_info microblaze_regsets_info =
+  {
+    microblaze_regsets, /* regsets */
+    0, /* num_regsets */
+    NULL, /* disabled_regsets */
+  };
+
+static struct regs_info regs_info =
+  {
+    NULL, /* regset_bitmap */
+    &microblaze_usrregs_info,
+    &microblaze_regsets_info
+  };
+
+static const struct regs_info *
+microblaze_regs_info (void)
+{
+  return &regs_info;
+}
+
+/* Support for hardware single step.  */
+
+static int
+microblaze_supports_hardware_single_step (void)
+{
+  return 1;
+}
+
+
+static void
+microblaze_arch_setup (void)
+{
+  current_process ()->tdesc = tdesc_microblaze;
+}
+
 struct linux_target_ops the_low_target = {
-  init_registers_microblaze,
-  microblaze_num_regs,
-  microblaze_regmap,
-  NULL,
+  microblaze_arch_setup,
+  microblaze_regs_info,
   microblaze_cannot_fetch_register,
   microblaze_cannot_store_register,
   NULL, /* fetch_register */
   microblaze_get_pc,
   microblaze_set_pc,
-  (const unsigned char *) &microblaze_breakpoint,
-  microblaze_breakpoint_len,
-  microblaze_reinsert_addr,
+  NULL,
+  microblaze_sw_breakpoint_from_kind,
+  NULL,
   0,
   microblaze_breakpoint_at,
   NULL,
   NULL,
   NULL,
   NULL,
+  NULL,
   microblaze_collect_ptrace_register,
   microblaze_supply_ptrace_register,
+  NULL, /* siginfo_fixup */
+  NULL, /* new_process */
+  NULL, /* new_thread */
+  NULL, /* new_fork */
+  NULL, /* prepare_to_resume */
+  NULL, /* process_qsupported */
+  NULL, /* supports_tracepoints */
+  NULL, /* get_thread_area */
+  NULL, /* install_fast_tracepoint_jump_pad */
+  NULL, /* emit_ops */
+  NULL, /* get_min_fast_tracepoint_insn_len */
+  NULL, /* supports_range_stepping */
+  NULL, /* breakpoint_kind_from_current_state */
+  microblaze_supports_hardware_single_step,
 };
+
+void
+initialize_low_arch (void)
+{
+  init_registers_microblaze ();
+}
