@@ -1861,8 +1861,7 @@ microblaze_elf_relax_section (bfd *abfd,
       else
 	symval += irel->r_addend;
 
-      if ((symval & 0xffff8000) == 0
-	  || (symval & 0xffff8000) == 0xffff8000)
+      if ((symval & 0xffff8000) == 0)
 	{
 	  /* We can delete this instruction.  */
 	  sec->relax[sec->relax_count].addr = irel->r_offset;
