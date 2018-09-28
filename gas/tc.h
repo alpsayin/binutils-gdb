@@ -22,7 +22,7 @@
 /* In theory (mine, at least!) the machine dependent part of the assembler
    should only have to include one file.  This one.  -- JF */
 
-extern const pseudo_typeS md_pseudo_table[];
+extern pseudo_typeS md_pseudo_table[];
 
 const char * md_atof (int, char *, int *);
 int    md_parse_option (int, const char *);
