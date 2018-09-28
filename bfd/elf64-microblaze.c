@@ -1552,6 +1552,14 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 			  bfd_put_16 (input_bfd, relocation & 0xffff,
 				      contents + offset + endian);
 
+                        unsigned long insn = bfd_get_32 (input_bfd, contents + offset +endian);
+                        if (insn == 0xb2000000 || insn == 0xb2ffffff)
+                          {
+                            insn &= ~0x00ffffff;
+                            insn |= (relocation >> 16) & 0xffffff;
+                            bfd_put_32 (input_bfd, insn,
+                                    contents + offset + endian);
+                          }
 			else
 			  {
 			    bfd_put_16 (input_bfd, (relocation >> 16) & 0xffff,
@@ -1659,6 +1667,14 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 			     bfd_put_16 (input_bfd, relocation & 0xffff,
 					 contents + offset + endian);
 			  }
+			unsigned long insn = bfd_get_32 (input_bfd, contents + offset +endian);
+                        if (insn == 0xb2000000 || insn == 0xb2ffffff)
+                          {
+                            insn &= ~0x00ffffff;
+                            insn |= (relocation >> 16) & 0xffffff;
+                            bfd_put_32 (input_bfd, insn,
+                                    contents + offset + endian);
+                          }
 			else
 			  {
 			    bfd_put_16 (input_bfd, (relocation >> 16) & 0xffff,
@@ -1769,9 +1785,19 @@ static void
 microblaze_bfd_write_imm_value_32 (bfd *abfd, bfd_byte *bfd_addr, bfd_vma val)
 {
     unsigned long instr = bfd_get_32 (abfd, bfd_addr);
-    instr &= ~0x0000ffff;
-    instr |= (val & 0x0000ffff);
-    bfd_put_32 (abfd, instr, bfd_addr);
+
+    if (instr == 0xb2000000 || instr == 0xb2ffffff)
+      {
+        instr &= ~0x00ffffff;
+        instr |= (val & 0xffffff);
+        bfd_put_32 (abfd, instr, bfd_addr);
+      }
+    else
+      {
+        instr &= ~0x0000ffff;
+        instr |= (val & 0x0000ffff);
+        bfd_put_32 (abfd, instr, bfd_addr);
+      }
 }
 
 /* Read-modify-write into the bfd, an immediate value into appropriate fields of
@@ -1783,10 +1809,18 @@ microblaze_bfd_write_imm_value_64 (bfd *abfd, bfd_byte *bfd_addr, bfd_vma val)
     unsigned long instr_lo;
 
     instr_hi = bfd_get_32 (abfd, bfd_addr);
-    instr_hi &= ~0x0000ffff;
-    instr_hi |= ((val >> 16) & 0x0000ffff);
-    bfd_put_32 (abfd, instr_hi, bfd_addr);
-
+    if (instr_hi == 0xb2000000 || instr_hi == 0xb2ffffff)
+      {
+        instr_hi &= ~0x00ffffff;
+        instr_hi |= (val >> 16) & 0xffffff;
+        bfd_put_32 (abfd, instr_hi,bfd_addr);
+      }
+    else
+      {
+        instr_hi &= ~0x0000ffff;
+        instr_hi |= ((val >> 16) & 0x0000ffff);
+        bfd_put_32 (abfd, instr_hi, bfd_addr);
+      }
     instr_lo = bfd_get_32 (abfd, bfd_addr + INST_WORD_SIZE);
     instr_lo &= ~0x0000ffff;
     instr_lo |= (val & 0x0000ffff);
