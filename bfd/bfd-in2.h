@@ -5465,6 +5465,11 @@ done here - only used for relaxing  */
  *   +done here - only used for relaxing  */
     BFD_RELOC_MICROBLAZE_64,
 
+/* This is a 64 bit reloc that stores the 32 bit relative
+ *  +value in two words (with an imml instruction).  No relocation is
+ *   +done here - only used for relaxing  */
+    BFD_RELOC_MICROBLAZE_EA64,
+
 /* This is a 64 bit reloc that stores the 32 bit pc relative
  *  +value in two words (with an imm instruction).  No relocation is
  *   +done here - only used for relaxing  */

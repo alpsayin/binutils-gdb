@@ -402,7 +402,6 @@ pseudo_typeS md_pseudo_table[] =
   {"ent", s_func, 0}, /* Treat ent as function entry point.  */
   {"end", microblaze_s_func, 1}, /* Treat end as function end point.  */
   {"gpword", s_rva, 4}, /* gpword label => store resolved label address in data section.  */
-  {"gpdword", s_rva, 8}, /* gpword label => store resolved label address in data section.  */
   {"weakext", microblaze_s_weakext, 0},
   {"rodata", microblaze_s_rdata, 0},
   {"sdata2", microblaze_s_rdata, 1},
@@ -2486,15 +2485,71 @@ md_apply_fix (fixS *   fixP,
       /* Don't do anything if the symbol is not defined.  */
       if (fixP->fx_addsy == NULL || S_IS_DEFINED (fixP->fx_addsy))
 	{
+	  if ((fixP->fx_r_type == BFD_RELOC_RVA) && (microblaze_arch_size == 64))
+            {
+	      if (target_big_endian)
+	        {
+	          buf[0] |= ((val >> 56) & 0xff);
+	          buf[1] |= ((val >> 48) & 0xff);
+	          buf[2] |= ((val >> 40) & 0xff);
+	          buf[3] |= ((val >> 32) & 0xff);
+	          buf[4] |= ((val >> 24) & 0xff);
+	          buf[5] |= ((val >> 16) & 0xff);
+	          buf[6] |= ((val >> 8) & 0xff);
+	          buf[7] |= (val & 0xff);
+	        }
+	      else
+	        {
+	          buf[7] |= ((val >> 56) & 0xff);
+	          buf[6] |= ((val >> 48) & 0xff);
+	          buf[5] |= ((val >> 40) & 0xff);
+	          buf[4] |= ((val >> 32) & 0xff);
+	          buf[3] |= ((val >> 24) & 0xff);
+	          buf[2] |= ((val >> 16) & 0xff);
+	          buf[1] |= ((val >> 8) & 0xff);
+	          buf[0] |= (val & 0xff);
+	        }
+	    }
+	  else {
+	    if (target_big_endian)
+	      {
+	        buf[0] |= ((val >> 24) & 0xff);
+	        buf[1] |= ((val >> 16) & 0xff);
+	        buf[2] |= ((val >> 8) & 0xff);
+	        buf[3] |= (val & 0xff);
+	      }
+	    else
+	      {
+	        buf[3] |= ((val >> 24) & 0xff);
+	        buf[2] |= ((val >> 16) & 0xff);
+	        buf[1] |= ((val >> 8) & 0xff);
+	        buf[0] |= (val & 0xff);
+	      }
+	  }
+	}
+      break;
+    
+    case BFD_RELOC_MICROBLAZE_EA64:
+      /* Don't do anything if the symbol is not defined.  */
+      if (fixP->fx_addsy == NULL || S_IS_DEFINED (fixP->fx_addsy))
+	{
 	  if (target_big_endian)
 	    {
-	      buf[0] |= ((val >> 24) & 0xff);
-	      buf[1] |= ((val >> 16) & 0xff);
-	      buf[2] |= ((val >> 8) & 0xff);
-	      buf[3] |= (val & 0xff);
+	      buf[0] |= ((val >> 56) & 0xff);
+	      buf[1] |= ((val >> 48) & 0xff);
+	      buf[2] |= ((val >> 40) & 0xff);
+	      buf[3] |= ((val >> 32) & 0xff);
+	      buf[4] |= ((val >> 24) & 0xff);
+	      buf[5] |= ((val >> 16) & 0xff);
+	      buf[6] |= ((val >> 8) & 0xff);
+	      buf[7] |= (val & 0xff);
 	    }
 	  else
 	    {
+	      buf[7] |= ((val >> 56) & 0xff);
+	      buf[6] |= ((val >> 48) & 0xff);
+	      buf[5] |= ((val >> 40) & 0xff);
+	      buf[4] |= ((val >> 32) & 0xff);
 	      buf[3] |= ((val >> 24) & 0xff);
 	      buf[2] |= ((val >> 16) & 0xff);
 	      buf[1] |= ((val >> 8) & 0xff);
@@ -2616,6 +2671,8 @@ md_apply_fix (fixS *   fixP,
 	fixP->fx_r_type = BFD_RELOC_MICROBLAZE_64_NONE;
       else if (fixP->fx_r_type == BFD_RELOC_32)
 	fixP->fx_r_type = BFD_RELOC_MICROBLAZE_32_NONE;
+      else if(fixP->fx_r_type == BFD_RELOC_MICROBLAZE_EA64)
+        fixP->fx_r_type = BFD_RELOC_MICROBLAZE_EA64;
       else
 	fixP->fx_r_type = BFD_RELOC_NONE;
       fixP->fx_addsy = section_symbol (absolute_section);
@@ -2887,6 +2944,7 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
     case BFD_RELOC_MICROBLAZE_32_SYM_OP_SYM:
     case BFD_RELOC_MICROBLAZE_64_GOTPC:
     case BFD_RELOC_MICROBLAZE_64_GPC:
+    case BFD_RELOC_MICROBLAZE_EA64:
     case BFD_RELOC_MICROBLAZE_64:
     case BFD_RELOC_MICROBLAZE_64_PCREL:
     case BFD_RELOC_MICROBLAZE_64_GOT:
@@ -3032,10 +3090,10 @@ cons_fix_new_microblaze (fragS * frag,
           r = BFD_RELOC_32;
           break;
         case 8:
-          if (microblaze_arch_size == 64)
+          /*if (microblaze_arch_size == 64)
             r = BFD_RELOC_32;
-          else
-            r = BFD_RELOC_64;
+          else*/
+            r = BFD_RELOC_MICROBLAZE_EA64;
           break;
         default:
           as_bad (_("unsupported BFD relocation size %u"), size);

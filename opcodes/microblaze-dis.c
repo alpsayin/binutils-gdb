@@ -77,7 +77,7 @@ static char *
 get_field_imml (struct string_buf *buf, long instr)
 {
   char *p = strbuf (buf);
-  sprintf (p, "%d", (short)((instr & IMML_MASK) >> IMM_LOW));
+  sprintf (p, "%d", (int)((instr & IMML_MASK) >> IMM_LOW));
   return p;
 }
 
