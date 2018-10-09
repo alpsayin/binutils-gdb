@@ -118,14 +118,14 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
           0,			/* Rightshift.  */
           4,			/* Size (0 = byte, 1 = short, 2 = long).  */
           64,			/* Bitsize.  */
-          true,		/* PC_relative.  */
+          false,		/* PC_relative.  */
           0,			/* Bitpos.  */
           complain_overflow_dont, /* Complain on overflow.  */
           bfd_elf_generic_reloc,/* Special Function.  */
           "R_MICROBLAZE_IMML_64",   	/* Name.  */
           false,		/* Partial Inplace.  */
           0,			/* Source Mask.  */
-          0x0000ffff,		/* Dest Mask.  */
+          0xffffffffffffff,		/* Dest Mask.  */
           false), 		/* PC relative offset?  */
 
    /* A 64 bit relocation.  Table entry not really used.  */
@@ -613,9 +613,9 @@ microblaze_elf_reloc_type_lookup (bfd * abfd ATTRIBUTE_UNUSED,
     case BFD_RELOC_32:
       microblaze_reloc = R_MICROBLAZE_32;
       break;
-      /* RVA is treated the same as 32 */
+      /* RVA is treated the same as 64 */
     case BFD_RELOC_RVA:
-      microblaze_reloc = R_MICROBLAZE_32;
+      microblaze_reloc = R_MICROBLAZE_IMML_64;
       break;
     case BFD_RELOC_32_PCREL:
       microblaze_reloc = R_MICROBLAZE_32_PCREL;
@@ -647,7 +647,7 @@ microblaze_elf_reloc_type_lookup (bfd * abfd ATTRIBUTE_UNUSED,
     case BFD_RELOC_VTABLE_ENTRY:
       microblaze_reloc = R_MICROBLAZE_GNU_VTENTRY;
       break;
-    case BFD_RELOC_MICROBLAZE_64:
+    case BFD_RELOC_MICROBLAZE_EA64:
       microblaze_reloc = R_MICROBLAZE_IMML_64;
       break;
     case BFD_RELOC_MICROBLAZE_64_GOTPC:
@@ -2050,7 +2050,7 @@ microblaze_elf_relax_section (bfd *abfd,
 	        efix = calc_fixup (target_address, 0, sec);
 
             /* Validate the in-band val.  */
-            val = bfd_get_32 (abfd, contents + irel->r_offset);
+            val = bfd_get_64 (abfd, contents + irel->r_offset);
             if (val != irel->r_addend && ELF64_R_TYPE (irel->r_info) == R_MICROBLAZE_32_NONE) {
                fprintf(stderr, "%d: CORRUPT relax reloc %x %lx\n", __LINE__, val, irel->r_addend);
             }
