@@ -2015,8 +2015,8 @@ microblaze_elf_relax_section (bfd *abfd,
 		sfix = calc_fixup (irel->r_offset + INST_WORD_SIZE, 0, sec);
 		efix = calc_fixup (target_address, 0, sec);
 		irel->r_addend -= (efix - sfix);
-    microblaze_bfd_write_imm_value_32 (abfd, contents + irel->r_offset
-				       + INST_WORD_SIZE, irel->r_addend);
+    microblaze_bfd_write_imm_value_64 (abfd, contents + irel->r_offset,
+                                       irel->r_addend);
 	      }
 	      break;
 	    }
