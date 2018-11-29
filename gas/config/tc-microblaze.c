@@ -783,7 +783,7 @@ parse_imm (char * s, expressionS * e, offsetT min, offsetT max)
 }
 
  static char *
-parse_imml (char * s, expressionS * e, long min, long max)
+parse_imml (char * s, expressionS * e, long long min, long long max)
 {
   char *new_pointer;
   char *atp;
@@ -834,11 +834,11 @@ parse_imml (char * s, expressionS * e, long min, long max)
     ; /* An error message has already been emitted.  */
   else if ((e->X_op != O_constant && e->X_op != O_symbol) )
     as_fatal (_("operand must be a constant or a label"));
-  else if ((e->X_op == O_constant) && ((long) e->X_add_number < min
-				       || (long) e->X_add_number > max))
+  else if ((e->X_op == O_constant) && ((long long) e->X_add_number < min
+				       || (long long) e->X_add_number > max))
     {
-      as_fatal (_("operand must be absolute in range %ld..%ld, not %ld"),
-                min, max, (long) e->X_add_number);
+      as_fatal (_("operand must be absolute in range %lld..%lld, not %lld"),
+                min, max, (long long) e->X_add_number);
     }
 
   if (atp)
