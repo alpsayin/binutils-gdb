@@ -40,6 +40,7 @@
 #include "features/microblaze-linux.c"
 
 static int microblaze_debug_flag = 0;
+int MICROBLAZE_REGISTER_SIZE=4;
 
 static void
 microblaze_debug (const char *fmt, ...)
@@ -55,6 +56,7 @@ microblaze_debug (const char *fmt, ...)
     }
 }
 
+#if 0
 static int
 microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch, 
 					   struct bp_target_info *bp_tgt)
@@ -85,6 +87,8 @@ microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch,
 
   return val;
 }
+
+#endif
 
 static void
 microblaze_linux_sigtramp_cache (struct frame_info *next_frame,
@@ -147,8 +151,8 @@ microblaze_linux_init_abi (struct gdbarch_info info,
 
   linux_init_abi (info, gdbarch, 0);
 
-  set_gdbarch_memory_remove_breakpoint (gdbarch,
-					microblaze_linux_memory_remove_breakpoint);
+ // set_gdbarch_memory_remove_breakpoint (gdbarch,
+ //					microblaze_linux_memory_remove_breakpoint);
 
   /* Shared library handling.  */
   set_solib_svr4_fetch_link_map_offsets (gdbarch,
@@ -160,10 +164,30 @@ microblaze_linux_init_abi (struct gdbarch_info info,
 
   /* BFD target for core files.  */
   if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
-    set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblaze");
+    {
+      if (info.bfd_arch_info->mach == bfd_mach_microblaze64) {
+          set_gdbarch_gcore_bfd_target (gdbarch, "elf64-microblaze");
+          MICROBLAZE_REGISTER_SIZE=8;
+        }
+      else
+        set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblaze");
+    }
   else
-    set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblazeel");
+    {
+      if (info.bfd_arch_info->mach == bfd_mach_microblaze64) {
+          set_gdbarch_gcore_bfd_target (gdbarch, "elf64-microblazeel");
+          MICROBLAZE_REGISTER_SIZE=8;
+        }
+      else
+        set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblazeel");
+    }
 
+    switch (info.bfd_arch_info->mach)
+    {
+    case bfd_mach_microblaze64:
+      set_gdbarch_ptr_bit (gdbarch, 64);
+    break;
+    }
 
   /* Shared library handling.  */
   set_gdbarch_skip_trampoline_code (gdbarch, find_solib_trampoline_target);
@@ -178,7 +202,9 @@ void _initialize_microblaze_linux_tdep ();
 void
 _initialize_microblaze_linux_tdep ()
 {
-  gdbarch_register_osabi (bfd_arch_microblaze, 0, GDB_OSABI_LINUX, 
+  gdbarch_register_osabi (bfd_arch_microblaze, bfd_mach_microblaze, GDB_OSABI_LINUX, 
+			  microblaze_linux_init_abi);
+  gdbarch_register_osabi (bfd_arch_microblaze, bfd_mach_microblaze64, GDB_OSABI_LINUX, 
 			  microblaze_linux_init_abi);
   initialize_tdesc_microblaze_linux ();
 }

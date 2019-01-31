@@ -28,7 +28,7 @@ struct microblaze_gregset
    microblaze_gregset() {}
    unsigned int gregs[32];
    unsigned int fpregs[32];
-   unsigned int pregs[16];
+   unsigned int pregs[18];
 };
 
 struct microblaze_gdbarch_tdep : gdbarch_tdep
@@ -134,7 +134,7 @@ struct microblaze_frame_cache
   struct trad_frame_saved_reg *saved_regs;
 };
 /* All registers are 32 bits.  */
-#define MICROBLAZE_REGISTER_SIZE 4
+//#define MICROBLAZE_REGISTER_SIZE 8
 
 /* MICROBLAZE_BREAKPOINT defines the breakpoint that should be used.
    Only used for native debugging.  */

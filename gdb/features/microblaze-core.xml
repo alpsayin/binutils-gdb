@@ -8,7 +8,7 @@
 <!DOCTYPE feature SYSTEM "gdb-target.dtd">
 <feature name="org.gnu.gdb.microblaze.core">
   <reg name="r0" bitsize="32" regnum="0"/>
-  <reg name="r1" bitsize="32" type="data_ptr"/>
+  <reg name="r1" bitsize="32"/>
   <reg name="r2" bitsize="32"/>
   <reg name="r3" bitsize="32"/>
   <reg name="r4" bitsize="32"/>
@@ -39,7 +39,7 @@
   <reg name="r29" bitsize="32"/>
   <reg name="r30" bitsize="32"/>
   <reg name="r31" bitsize="32"/>
-  <reg name="rpc" bitsize="32" type="code_ptr"/>
+  <reg name="rpc" bitsize="32"/>
   <reg name="rmsr" bitsize="32"/>
   <reg name="rear" bitsize="32"/>
   <reg name="resr" bitsize="32"/>
@@ -64,4 +64,6 @@
   <reg name="rtlbsx" bitsize="32"/>
   <reg name="rtlblo" bitsize="32"/>
   <reg name="rtlbhi" bitsize="32"/>
+  <reg name="slr" bitsize="32"/>
+  <reg name="shr" bitsize="32"/>
 </feature>
