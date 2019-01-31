@@ -45,6 +45,8 @@
 
 # List of .dat files to create in ../regformats/
 WHICH = mips-linux mips-dsp-linux \
+	microblaze-with-stack-protect \
+	microblaze64-with-stack-protect \
 	mips64-linux mips64-dsp-linux \
 	nios2-linux \
 	or1k-linux \
@@ -100,7 +102,9 @@ OUTPUTS = $(patsubst %,$(outdir)/%.dat,$(WHICH))
 # to make on the command line.
 XMLTOC = \
 	microblaze-with-stack-protect.xml \
+	microblaze64-with-stack-protect.xml \
 	microblaze.xml \
+	microblaze64.xml \
 	mips-dsp-linux.xml \
 	mips-linux.xml \
 	mips64-dsp-linux.xml \

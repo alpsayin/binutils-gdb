@@ -527,6 +527,8 @@ DESCRIPTION
 .  bfd_arch_lm32,      {* Lattice Mico32.  *}
 .#define bfd_mach_lm32		1
 .  bfd_arch_microblaze,{* Xilinx MicroBlaze.  *}
+.#define bfd_mach_microblaze	1
+.#define bfd_mach_microblaze64	2
 .  bfd_arch_tilepro,   {* Tilera TILEPro.  *}
 .  bfd_arch_tilegx,    {* Tilera TILE-Gx.  *}
 .#define bfd_mach_tilepro	1

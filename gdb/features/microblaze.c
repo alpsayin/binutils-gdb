@@ -14,7 +14,7 @@ initialize_tdesc_microblaze (void)
 
   feature = tdesc_create_feature (result.get (), "org.gnu.gdb.microblaze.core");
   tdesc_create_reg (feature, "r0", 0, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "r1", 1, 1, NULL, 32, "data_ptr");
+  tdesc_create_reg (feature, "r1", 1, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r2", 2, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r3", 3, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r4", 4, 1, NULL, 32, "int");
@@ -45,7 +45,7 @@ initialize_tdesc_microblaze (void)
   tdesc_create_reg (feature, "r29", 29, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r30", 30, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r31", 31, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "rpc", 32, 1, NULL, 32, "code_ptr");
+  tdesc_create_reg (feature, "rpc", 32, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "rmsr", 33, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "rear", 34, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "resr", 35, 1, NULL, 32, "int");
@@ -70,6 +70,8 @@ initialize_tdesc_microblaze (void)
   tdesc_create_reg (feature, "rtlbsx", 54, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "rtlblo", 55, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "rtlbhi", 56, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "slr", 57, 1, NULL, 64, "uint64");
+  tdesc_create_reg (feature, "shr", 58, 1, NULL, 64, "uint64");
 
   tdesc_microblaze = result.release ();
 }
