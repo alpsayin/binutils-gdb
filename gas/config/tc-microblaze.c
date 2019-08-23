@@ -423,12 +423,33 @@ void
 md_begin (void)
 {
   const struct op_code_struct * opcode;
+  const char *prev_name = "";
 
   opcode_hash_control = str_htab_create ();
 
   /* Insert unique names into hash table.  */
-  for (opcode = microblaze_opcodes; opcode->name; opcode ++)
-    str_hash_insert (opcode_hash_control, opcode->name, opcode, 0);
+  for (opcode = (struct microblaze_opcodes *)microblaze_opcodes; opcode->name; opcode ++)
+    {
+      if (strcmp (prev_name, opcode->name))
+	{
+	  prev_name = (char *) opcode->name;
+          str_hash_insert (opcode_hash_control, opcode->name, opcode, 0);
+        }
+    }
+}
+
+static int
+is_reg (char * s)
+{
+  int is_reg = 0; 
+  /* Strip leading whitespace.  */
+  while (ISSPACE (* s))
+    ++ s;
+  if (TOLOWER (s[0]) == 'r')
+    {
+	 is_reg =1;
+    }
+  return is_reg;
 }
 
 /* Try to parse a reg name.  */
@@ -986,6 +1007,7 @@ md_assemble (char * str)
 {
   char * op_start;
   char * op_end;
+  char * temp_op_end;
   struct op_code_struct * opcode, *opcode1;
   char * output = NULL;
   int nlen = 0;
@@ -996,9 +1018,10 @@ md_assemble (char * str)
   unsigned reg3;
   unsigned isize;
   unsigned long immed = 0, immed2 = 0, temp;
-  expressionS exp;
+  expressionS exp, exp1;
   char name[20];
   long immedl;
+  int reg = 0;
 
   /* Drop leading whitespace.  */
   while (ISSPACE (* str))
@@ -1029,7 +1052,78 @@ md_assemble (char * str)
       as_bad (_("unknown opcode \"%s\""), name);
       return;
     }
-
+   
+  if ((microblaze_arch_size == 64) && (streq (name, "addli") || streq (name, "addlic") ||
+        streq (name, "addlik") || streq (name, "addlikc") || streq (name, "rsubli") 
+	|| streq (name, "rsublic") || streq (name, "rsublik") || streq (name, "rsublikc") 
+	|| streq (name, "andli") || streq (name, "andnli") || streq (name, "orli") 
+	|| streq (name, "xorli")))
+    {
+      temp_op_end = op_end;
+      if (strcmp (temp_op_end, ""))
+        temp_op_end = parse_reg (temp_op_end + 1, &reg1);  /* Get rd.  */
+      if (strcmp (temp_op_end, ""))
+        reg  = is_reg (temp_op_end + 1);
+      if (reg) 
+	{
+          
+ 	  opcode->inst_type=INST_TYPE_RD_R1_IMML;
+          opcode->inst_offset_type = OPCODE_MASK_H;
+          if (streq (name, "addli"))
+ 	    opcode->bit_sequence = ADDLI_MASK;
+          else if (streq (name, "addlic"))
+ 	    opcode->bit_sequence = ADDLIC_MASK;
+          else if (streq (name, "addlik"))
+ 	    opcode->bit_sequence = ADDLIK_MASK;
+          else if (streq (name, "addlikc"))
+ 	    opcode->bit_sequence = ADDLIKC_MASK;
+          else if (streq (name, "rsubli"))
+ 	    opcode->bit_sequence = RSUBLI_MASK;
+          else if (streq (name, "rsublic"))
+ 	    opcode->bit_sequence = RSUBLIC_MASK;
+          else if (streq (name, "rsublik"))
+ 	    opcode->bit_sequence = RSUBLIK_MASK;
+          else if (streq (name, "rsublikc"))
+ 	    opcode->bit_sequence = RSUBLIKC_MASK;
+          else if (streq (name, "andli"))
+ 	    opcode->bit_sequence = ANDLI_MASK;
+          else if (streq (name, "andnli"))
+ 	    opcode->bit_sequence = ANDLNI_MASK;
+          else if (streq (name, "orli"))
+ 	    opcode->bit_sequence = ORLI_MASK;
+          else if (streq (name, "xorli"))
+ 	    opcode->bit_sequence = XORLI_MASK;
+	}
+      else
+        {
+	  opcode->inst_type=INST_TYPE_RD_IMML;
+          opcode->inst_offset_type = OPCODE_MASK_LIMM;
+          if (streq (name, "addli"))
+ 	    opcode->bit_sequence = ADDLI_ONE_REG_MASK;
+          else if (streq (name, "addlic"))
+ 	    opcode->bit_sequence = ADDLIC_ONE_REG_MASK;
+          else if (streq (name, "addlik"))
+ 	    opcode->bit_sequence = ADDLIK_ONE_REG_MASK;
+          else if (streq (name, "addlikc"))
+ 	    opcode->bit_sequence = ADDLIKC_ONE_REG_MASK;
+          else if (streq (name, "rsubli"))
+ 	    opcode->bit_sequence = RSUBLI_ONE_REG_MASK;
+          else if (streq (name, "rsublic"))
+ 	    opcode->bit_sequence = RSUBLIC_ONE_REG_MASK;
+          else if (streq (name, "rsublik"))
+ 	    opcode->bit_sequence = RSUBLIK_ONE_REG_MASK;
+          else if (streq (name, "rsublikc"))
+ 	    opcode->bit_sequence = RSUBLIKC_ONE_REG_MASK;
+          else if (streq (name, "andli"))
+ 	    opcode->bit_sequence = ANDLI_ONE_REG_MASK;
+          else if (streq (name, "andnli"))
+ 	    opcode->bit_sequence = ANDLNI_ONE_REG_MASK;
+          else if (streq (name, "orli"))
+ 	    opcode->bit_sequence = ORLI_ONE_REG_MASK;
+          else if (streq (name, "xorli"))
+ 	    opcode->bit_sequence = XORLI_ONE_REG_MASK;
+        }
+    }
   inst = opcode->bit_sequence;
   isize = 4;
 
@@ -1486,6 +1580,51 @@ md_assemble (char * str)
       inst |= (immed << IMM_LOW) & IMM15_MASK;
       break;
 
+    case INST_TYPE_RD_IMML:
+      if (strcmp (op_end, ""))
+        op_end = parse_reg (op_end + 1, &reg1);  /* Get rd.  */
+      else
+        {
+          as_fatal (_("Error in statement syntax"));
+          reg1 = 0;
+        }
+
+      if (strcmp (op_end, ""))
+        op_end = parse_imml (op_end + 1, & exp, MIN_IMML, MAX_IMML);
+      else
+        as_fatal (_("Error in statement syntax"));
+
+      /* Check for spl registers. */
+      if (check_spl_reg (&reg1))
+        as_fatal (_("Cannot use special register with this instruction"));
+      if (exp.X_op != O_constant)
+	{
+          char *opc = NULL;
+          relax_substateT subtype;
+
+          if (exp.X_md != 0)
+            subtype = get_imm_otype(exp.X_md);
+          else
+            subtype = opcode->inst_offset_type;
+
+          output = frag_var (rs_machine_dependent,
+                             isize * 2, 
+                             isize * 2,
+                             subtype,   
+                             exp.X_add_symbol,
+                             exp.X_add_number,
+                             (char *) opc);
+          immedl = 0L;
+	}		
+      else
+        {
+          output = frag_more (isize);
+          immed = exp.X_add_number;
+        }
+      inst |= (reg1 << RD_LOW) & RD_MASK;
+      inst |= (immed << IMM_LOW) & IMM16_MASK;
+      break;
+	
     case INST_TYPE_R1_RFSL:
       if (strcmp (op_end, ""))
         op_end = parse_reg (op_end + 1, &reg1);  /* Get r1.  */

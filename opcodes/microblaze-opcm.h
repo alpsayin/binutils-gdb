@@ -61,7 +61,9 @@ enum microblaze_instr
   eaputd, teaputd, ecaputd, tecaputd, neaputd, tneaputd, necaputd, tnecaputd,
 
   /* 64-bit instructions */
-  addl, rsubl, addlc, rsublc, addlk, rsublk, addlkc, rsublkc, cmpl, cmplu, mull,
+  addl, addli, addlic, addlik, addlikc, rsubl, rsubli, rsublic, rsublik, rsublikc,
+  addlc, rsublc, addlk, rsublk, addlkc, rsublkc, cmpl, cmplu, mull,
+  andli, andnli, orli, xorli,
   bslll, bslra, bslrl, bsllli, bslrai, bslrli, bslefi, bslifi, orl, andl, xorl,
   andnl, pcmplbf, pcmpleq, pcmplne, srla, srlc, srll, sextl8, sextl16, sextl32,
   brea, bread, breald, beaeq, bealeq, beaeqd, bealeqd, beane, bealne, beaned,
@@ -166,5 +168,6 @@ enum microblaze_instr_type
 
 /* Imm mask for msrset, msrclr instructions.  */
 #define  IMM15_MASK 0x00007FFF
+#define IMM16_MASK 0x0000FFFF
 
 #endif /* MICROBLAZE-OPCM */

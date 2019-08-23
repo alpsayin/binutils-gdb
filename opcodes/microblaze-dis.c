@@ -130,6 +130,14 @@ get_field_imm15 (struct string_buf *buf, long instr)
   return p;
 }
 
+get_field_imm16 (struct string_buf *buf, long instr)
+{
+  char *p = strbuf (buf);
+
+  sprintf (p, "%d", (short)((instr & IMM16_MASK) >> IMM_LOW));
+  return p;
+}
+
 static char *
 get_field_special (struct string_buf *buf, long instr,
 		   const struct op_code_struct *op)
@@ -456,6 +464,9 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
 	  /* For mbar 16 or sleep insn.  */
 	case INST_TYPE_NONE:
 	  break;
+	case INST_TYPE_RD_IMML:
+	  print_func (stream, "\t%s, %s", get_field_rd (&buf, inst), get_field_imm16 (&buf, inst));
+          break;
         /* For bit field insns.  */
 	case INST_TYPE_RD_R1_IMMW_IMMS:
           print_func (stream, "\t%s, %s, %s, %s", get_field_rd (&buf, inst),get_field_r1(&buf, inst),get_field_immw (&buf, inst), get_field_imms (&buf, inst));
