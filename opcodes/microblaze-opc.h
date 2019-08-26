@@ -626,8 +626,8 @@ char pvr_register_prefix[] = "rpvr";
 #define MIN_IMM6_WIDTH  ((int) 0x00000001)
 #define MAX_IMM6_WIDTH  ((int) 0x00000040)
 
-#define MIN_IMML  ((long long) 0xffffff8000000000L)
-#define MAX_IMML  ((long long) 0x0000007fffffffffL)
+#define MIN_IMML  ((long long) -9223372036854775808)
+#define MAX_IMML  ((long long) 9223372036854775807)
 
 #endif /* MICROBLAZE_OPC */
 
