@@ -2158,9 +2158,7 @@ md_assemble (char * str)
       if (exp.X_op != O_constant)
 	{
 	  char *opc;
-          if (microblaze_arch_size == 64 && (streq (name, "breai") || 
-		 streq (name, "breaid") || 
-	         streq (name, "brai") || streq (name, "braid")))
+          if (microblaze_arch_size == 64 && (streq (name, "brai") || streq (name, "braid")))
             opc = str_microblaze_64;
 	  else
             opc = NULL;
@@ -2923,7 +2921,7 @@ md_apply_fix (fixS *   fixP,
     case BFD_RELOC_MICROBLAZE_64:
     case BFD_RELOC_MICROBLAZE_64_PCREL:
       if (fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64
-            || fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_PCREL)
+            || fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_PCREL || (fixP->fx_r_type == BFD_RELOC_64_PCREL && microblaze_arch_size == 64))
         {
           /* Generate the imm instruction.  */
            if (((long long)val) > (long long)-549755813888 && ((long long)val) < (long long)549755813887)
