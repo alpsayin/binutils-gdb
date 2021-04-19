@@ -870,7 +870,15 @@ case "${targ}" in
     targ_defvec=metag_elf32_vec
     targ_underscore=yes
     ;;
+  microblazeel*-*64)
+    targ_defvec=microblaze_elf64_le_vec
+    targ_selvecs=microblaze_elf64_vec
+    ;;
 
+  microblaze*-*64)
+    targ_defvec=microblaze_elf64_vec
+    targ_selvecs=microblaze_elf64_le_vec
+    ;;
   microblazeel*-*)
     targ_defvec=microblaze_elf32_le_vec
     targ_selvecs=microblaze_elf32_vec
