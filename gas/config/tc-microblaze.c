@@ -1017,7 +1017,7 @@ md_assemble (char * str)
   unsigned reg2;
   unsigned reg3;
   unsigned isize;
-  unsigned long immed = 0, immed2 = 0, temp;
+  unsigned long long immed = 0, immed2 = 0, temp;
   expressionS exp,exp1;
   char name[20];
   long immedl;
