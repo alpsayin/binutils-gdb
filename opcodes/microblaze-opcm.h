@@ -25,6 +25,7 @@
 
 enum microblaze_instr
 {
+  /* 32-bit instructions */
   add, rsub, addc, rsubc, addk, rsubk, addkc, rsubkc, clz, cmp, cmpu,
   addi, rsubi, addic, rsubic, addik, rsubik, addikc, rsubikc, mul,
   mulh, mulhu, mulhsu,swapb,swaph,
@@ -39,8 +40,8 @@ enum microblaze_instr
   imm, rtsd, rtid, rtbd, rted, bri, brid, brlid, brai, braid, bralid,
   brki, beqi, beqid, bnei, bneid, blti, bltid, blei, bleid, bgti,
   bgtid, bgei, bgeid, lbu, lbuea, lbur, lhu, lhuea, lhur, lw, lwea, lwr, lwx,
-  sb, sbea, sbr, sh, shea, shr, sw, swea, swr, swx, lbui, lhui, lwi,
-  sbi, shi, swi, msrset, msrclr, tuqula, mbi_fadd, frsub, mbi_fmul, mbi_fdiv,
+  sb, sbea, sbr, sh, shea, shr, sw, swea, swr, swx, lbui, lhui, lwi, lli,
+  sbi, shi, swi, sli, msrset, msrclr, tuqula, mbi_fadd, frsub, mbi_fmul, mbi_fdiv,
   fcmp_lt, fcmp_eq, fcmp_le, fcmp_gt, fcmp_ne, fcmp_ge, fcmp_un, flt,
   fint, fsqrt,
   tget, tcget, tnget, tncget, tput, tcput, tnput, tncput,
@@ -58,6 +59,18 @@ enum microblaze_instr
   aputd, taputd, caputd, tcaputd, naputd, tnaputd, ncaputd, tncaputd,
   eagetd, teagetd, ecagetd, tecagetd, neagetd, tneagetd, necagetd, tnecagetd,
   eaputd, teaputd, ecaputd, tecaputd, neaputd, tneaputd, necaputd, tnecaputd,
+
+  /* 64-bit instructions */
+  addl, rsubl, addlc, rsublc, addlk, rsublk, addlkc, rsublkc, cmpl, cmplu, mull,
+  bslll, bslra, bslrl, bsllli, bslrai, bslrli, bslefi, bslifi, orl, andl, xorl,
+  andnl, pcmplbf, pcmpleq, pcmplne, srla, srlc, srll, sextl8, sextl16, sextl32,
+  brea, bread, breald, beaeq, bealeq, beaeqd, bealeqd, beane, bealne, beaned,
+  bealned, bealt, beallt, bealtd, bealltd, beale, bealle, bealed, bealled, beagt,
+  bealgt, beagtd, bealgtd, beage, bealge, beaged, bealged, breai, breaid, brealid,
+  beaeqi, beaeqid, beanei, beaneid, bealti, bealtid, bealei, bealeid, beagti,
+  beagtid, beagei, beageid, imml, ll, llr, sl, slr,
+  dadd, drsub, dmul, ddiv, dcmp_lt, dcmp_eq, dcmp_le, dcmp_gt, dcmp_ne, dcmp_ge,
+  dcmp_un, dbl, dlong, dsqrt,
   invalid_inst
 };
 
@@ -135,15 +148,18 @@ enum microblaze_instr_type
 #define RA_MASK 0x001F0000
 #define RB_MASK 0x0000F800
 #define IMM_MASK 0x0000FFFF
+#define IMML_MASK 0x00FFFFFF
 
-/* Imm mask for barrel shifts.  */
+/* Imm masks for barrel shifts.  */
 #define IMM5_MASK 0x0000001F
+#define IMM6_MASK 0x0000003F
 
 /* Imm mask for mbar.  */
 #define IMM5_MBAR_MASK 0x03E00000
 
-/* Imm mask for extract/insert width. */
+/* Imm masks for extract/insert width. */
 #define IMM5_WIDTH_MASK 0x000007C0
+#define IMM6_WIDTH_MASK 0x00000FC0
 
 /* FSL imm mask for get, put instructions.  */
 #define  RFSL_MASK 0x000000F

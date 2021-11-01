@@ -5461,9 +5461,19 @@ done here - only used for relaxing  */
   BFD_RELOC_MICROBLAZE_64_NONE,
 
 /* This is a 64 bit reloc that stores the 32 bit pc relative
+ *  +value in two words (with an imml instruction).  No relocation is
+ *   +done here - only used for relaxing  */
+    BFD_RELOC_MICROBLAZE_64,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative
 value in two words (with an imm instruction).  The relocation is
 PC-relative GOT offset  */
   BFD_RELOC_MICROBLAZE_64_GOTPC,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative
+value in two words (with an imml instruction).  The relocation is
+PC-relative GOT offset  */
+  BFD_RELOC_MICROBLAZE_64_GPC,
 
 /* This is a 64 bit reloc that stores the 32 bit pc relative
 value in two words (with an imm instruction).  The relocation is
