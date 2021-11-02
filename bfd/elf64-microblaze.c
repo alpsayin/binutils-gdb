@@ -1529,6 +1529,7 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 	    case (int) R_MICROBLAZE_64_PCREL :
 	    case (int) R_MICROBLAZE_64:
 	    case (int) R_MICROBLAZE_32:
+	    case (int) R_MICROBLAZE_IMML_64:
 	      {
 		/* r_symndx will be STN_UNDEF (zero) only for relocs against symbols
 		   from removed linkonce sections, or sections discarded by
@@ -1538,6 +1539,8 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 		    relocation += addend;
 		    if (r_type == R_MICROBLAZE_32)// || r_type == R_MICROBLAZE_IMML_64)
 		      bfd_put_32 (input_bfd, relocation, contents + offset);
+		    else if (r_type == R_MICROBLAZE_IMML_64)
+		      bfd_put_64 (input_bfd, relocation, contents + offset);
 		    else
 		      {
 			if (r_type == R_MICROBLAZE_64_PCREL)
@@ -1626,7 +1629,7 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 		      }
 		    else
 		      {
-			if (r_type == R_MICROBLAZE_32)
+			if (r_type == R_MICROBLAZE_32 || r_type == R_MICROBLAZE_IMML_64)
 			  {
 			    outrel.r_info = ELF64_R_INFO (0, R_MICROBLAZE_REL);
 			    outrel.r_addend = relocation + addend;
@@ -1652,6 +1655,8 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 		    relocation += addend;
 		    if (r_type == R_MICROBLAZE_32)
 		      bfd_put_32 (input_bfd, relocation, contents + offset);
+		    else if (r_type == R_MICROBLAZE_IMML_64)
+		      bfd_put_64 (input_bfd, relocation, contents + offset + endian);
 		    else
 		      {
 			if (r_type == R_MICROBLAZE_64_PCREL)
@@ -2165,7 +2170,8 @@ microblaze_elf_relax_section (bfd *abfd,
                   microblaze_bfd_write_imm_value_32 (abfd, ocontents + irelscan->r_offset,
                                                      irelscan->r_addend);
               }
-              if (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_32)
+              if (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_32 
+		   || ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_IMML_64)
                 {
 	          isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
@@ -2640,6 +2646,7 @@ microblaze_elf_check_relocs (bfd * abfd,
         case R_MICROBLAZE_64:
         case R_MICROBLAZE_64_PCREL:
         case R_MICROBLAZE_32:
+        case R_MICROBLAZE_IMML_64:
           {
             if (h != NULL && !bfd_link_pic (info))
 	      {
