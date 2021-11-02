@@ -1119,6 +1119,13 @@ md_assemble (char * str)
 	    as_fatal (_("smi pseudo instruction should not use a label in imm field"));
           if(streq (name, "lli") || streq (name, "sli"))
             opc = str_microblaze_64;
+          else if ((microblaze_arch_size == 64) && ((streq (name, "lbui")
+			|| streq (name, "lhui") || streq (name, "lwi") || streq (name, "sbi")
+			|| streq (name, "shi") || streq (name, "swi"))))
+	    {
+              opc = str_microblaze_64;
+	      subtype = opcode->inst_offset_type;
+	    }
 	  else if (reg2 == REG_ROSDP)
 	    opc = str_microblaze_ro_anchor;
 	  else if (reg2 == REG_RWSDP)
@@ -1186,7 +1193,10 @@ md_assemble (char * str)
               inst |= (immed << IMM_LOW) & IMM_MASK;
             }
 	}
-      else if (streq (name, "lli") || streq (name, "sli"))
+      else if (streq (name, "lli") || streq (name, "sli") || ((microblaze_arch_size == 64)
+		&& ((streq (name, "lbui")) || streq (name, "lhui")
+		|| streq (name, "lwi") || streq (name, "sbi")
+                || streq (name, "shi") || streq (name, "swi"))))
         {
           temp = immed & 0xFFFFFF8000;
           if (temp != 0 && temp != 0xFFFFFF8000)
@@ -1802,6 +1812,11 @@ md_assemble (char * str)
 
 	  if (exp.X_md != 0)
 	    subtype = get_imm_otype(exp.X_md);
+          else if (streq (name, "brealid") || streq (name, "breaid") || streq (name, "breai"))
+            {
+              opc = str_microblaze_64;
+	      subtype = opcode->inst_offset_type;
+	    }
 	  else
 	    subtype = opcode->inst_offset_type;
 
@@ -1819,6 +1834,31 @@ md_assemble (char * str)
           output = frag_more (isize);
           immed = exp.X_add_number;
         }
+      if (streq (name, "brealid") || streq (name, "breaid") || streq (name, "breai"))
+        {
+          temp = immed & 0xFFFFFF8000;
+          if (temp != 0 && temp != 0xFFFFFF8000)
+            {
+              /* Needs an immediate inst.  */
+              opcode1 = (struct op_code_struct *) str_hash_find (opcode_hash_control, "imml");
+              if (opcode1 == NULL)
+                {
+                  as_bad (_("unknown opcode \"%s\""), "imml");
+                  return;
+                }
+              inst1 = opcode1->bit_sequence;
+	      inst1 |= ((immed & 0xFFFFFFFFFFFF0000L) >> 16) & IMML_MASK;
+              output[0] = INST_BYTE0 (inst1);
+              output[1] = INST_BYTE1 (inst1);
+              output[2] = INST_BYTE2 (inst1);
+              output[3] = INST_BYTE3 (inst1);
+              output = frag_more (isize);
+            }
+      	  inst |= (reg1 << RD_LOW) & RD_MASK;
+          inst |= (immed << IMM_LOW) & IMM_MASK;
+         }
+       else 
+	 {
 
       temp = immed & 0xFFFF8000;
       if ((temp != 0) && (temp != 0xFFFF8000))
@@ -1844,6 +1884,7 @@ md_assemble (char * str)
 
       inst |= (reg1 << RD_LOW) & RD_MASK;
       inst |= (immed << IMM_LOW) & IMM_MASK;
+        }
       break;
 
     case INST_TYPE_R2:
@@ -3090,10 +3131,10 @@ cons_fix_new_microblaze (fragS * frag,
           r = BFD_RELOC_32;
           break;
         case 8:
-          /*if (microblaze_arch_size == 64)
-            r = BFD_RELOC_32;
-          else*/
+          if (microblaze_arch_size == 64)
             r = BFD_RELOC_MICROBLAZE_EA64;
+          else
+            r = BFD_RELOC_64;
           break;
         default:
           as_bad (_("unsupported BFD relocation size %u"), size);
