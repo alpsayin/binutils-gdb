@@ -1643,12 +1643,56 @@ md_assemble (char * str)
                              exp.X_add_symbol,
                              exp.X_add_number,
                              (char *) opc);
-          immedl = 0L;
+          immed = 0L;
 	}		
       else
         {
           output = frag_more (isize);
           immed = exp.X_add_number;
+          temp = ((long long)immed) & 0xFFFFFFFFFFFF8000;
+          if (temp != 0 && temp != 0xFFFFFFFFFFFF8000 && temp != 0x8000)
+            {
+              /* Needs an immediate inst.  */
+           if (((long long)immed) > (long long)-549755813888 && ((long long)immed) < (long long)549755813887)
+	    {
+            opcode1 = (struct op_code_struct *) str_hash_find (opcode_hash_control, "imml");
+              if (opcode1 == NULL)
+                {
+                  as_bad (_("unknown opcode \"%s\""), "imml");
+                  return;
+                }
+              inst1 = opcode1->bit_sequence;
+              inst1 |= ((immed & 0x000000FFFFFF0000L) >> 16) & IMML_MASK;
+              output[0] = INST_BYTE0 (inst1);
+              output[1] = INST_BYTE1 (inst1);
+              output[2] = INST_BYTE2 (inst1);
+              output[3] = INST_BYTE3 (inst1);
+              output = frag_more (isize);
+            }
+          else {
+           opcode2 = (struct op_code_struct *) str_hash_find (opcode_hash_control, "imml");
+           opcode1 = (struct op_code_struct *) str_hash_find (opcode_hash_control, "imml");
+              if (opcode1 == NULL || opcode2 == NULL)
+                {
+                  as_bad (_("unknown opcode \"%s\""), "imml");
+                  return;
+                }
+              inst1 = opcode2->bit_sequence;
+              inst1 |= ((immed & 0xFFFFFF0000000000L) >> 40) & IMML_MASK;
+              output[0] = INST_BYTE0 (inst1);
+              output[1] = INST_BYTE1 (inst1);
+              output[2] = INST_BYTE2 (inst1);
+              output[3] = INST_BYTE3 (inst1);
+              output = frag_more (isize);
+              inst1 = opcode1->bit_sequence;
+              inst1 |= ((immed & 0x000000FFFFFF0000L) >> 16) & IMML_MASK;
+              output[0] = INST_BYTE0 (inst1);
+              output[1] = INST_BYTE1 (inst1);
+              output[2] = INST_BYTE2 (inst1);
+              output[3] = INST_BYTE3 (inst1);
+              output = frag_more (isize);
+          }
+	  }
         }
       inst |= (reg1 << RD_LOW) & RD_MASK;
       inst |= (immed << IMM_LOW) & IMM16_MASK;
@@ -2146,8 +2190,8 @@ md_assemble (char * str)
             streq (name, "breaid") || 
 	    streq (name, "brai") || streq (name, "braid")))
         {
-          temp = immed & 0xFFFFFFFFFFFF8000;
-          if (temp != 0)
+          temp = ((long long)immed) & 0xFFFFFFFFFFFF8000;
+          if (temp != 0 && temp != 0xFFFFFFFFFFFF8000 && temp != 0x8000)
 	    {
               /* Needs an immediate inst.  */
 	  if (((long long)immed) > (long long)-549755813888 && ((long long)immed) < (long long)549755813887)
