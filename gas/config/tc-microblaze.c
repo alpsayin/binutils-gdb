@@ -385,6 +385,17 @@ microblaze_s_weakext (int ignore ATTRIBUTE_UNUSED)
   demand_empty_rest_of_line ();
 }
 
+/* Handle the .gpword pseudo-op, Pass to s_rva */
+
+static void
+microblaze_s_gpword (int ignore ATTRIBUTE_UNUSED)
+{
+  int size = 4;
+  if (microblaze_arch_size == 64)
+    size = 8;
+  s_rva(size);
+}
+
 /* This table describes all the machine specific pseudo-ops the assembler
    has to support.  The fields are:
    Pseudo-op name without dot
@@ -392,7 +403,7 @@ microblaze_s_weakext (int ignore ATTRIBUTE_UNUSED)
    Integer arg to pass to the function.  */
 /* If the pseudo-op is not found in this table, it searches in the obj-elf.c,
    and then in the read.c table.  */
-pseudo_typeS md_pseudo_table[] =
+const pseudo_typeS md_pseudo_table[] =
 {
   {"lcomm", microblaze_s_lcomm, 1},
   {"data", microblaze_s_data, 0},
@@ -401,7 +412,7 @@ pseudo_typeS md_pseudo_table[] =
   {"data32", cons, 4},     /* Same as word.  */
   {"ent", s_func, 0}, /* Treat ent as function entry point.  */
   {"end", microblaze_s_func, 1}, /* Treat end as function end point.  */
-  {"gpword", s_rva, 4}, /* gpword label => store resolved label address in data section.  */
+  {"gpword", microblaze_s_gpword, 0}, /* gpword label => store resolved label address in data section.  */
   {"weakext", microblaze_s_weakext, 0},
   {"rodata", microblaze_s_rdata, 0},
   {"sdata2", microblaze_s_rdata, 1},
@@ -3456,7 +3467,6 @@ md_parse_option (int c, const char * arg ATTRIBUTE_UNUSED)
     case OPTION_M64:
       //if (arg != NULL && strcmp (arg, "64") == 0)
       microblaze_arch_size = 64;
-      md_pseudo_table[7].poc_val = 8;
       break;
     default:
       return 0;
