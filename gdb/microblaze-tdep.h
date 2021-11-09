@@ -19,9 +19,17 @@
 
 #ifndef MICROBLAZE_TDEP_H
 #define MICROBLAZE_TDEP_H 1
-
+#include "objfiles.h"
 #include "gdbarch.h"
 
+struct gdbarch;
+enum microblaze_abi
+  {
+    MICROBLAZE_ABI_AUTO = 0,
+    MICROBLAZE_ABI_M64,
+ };
+
+enum microblaze_abi microblaze_abi (struct gdbarch *gdbarch);
 /* Microblaze architecture-specific information.  */
 struct microblaze_gregset
 {
@@ -35,11 +43,14 @@ struct microblaze_gdbarch_tdep : gdbarch_tdep
 {
   int dummy;		// declare something.
 
+  enum microblaze_abi microblaze_abi {};
+  enum microblaze_abi found_abi {};
   /* Register sets.  */
   struct regset *gregset;
   size_t sizeof_gregset;
   struct regset *fpregset;
   size_t sizeof_fpregset;
+  int register_size;
 };
 
 /* Register numbers.  */
