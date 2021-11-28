@@ -140,7 +140,7 @@ get_field_imm16 (struct string_buf *buf, long instr)
 
 static char *
 get_field_special (struct string_buf *buf, long instr,
-		   const struct op_code_struct *op)
+		   struct op_code_struct *op)
 {
   char *p = strbuf (buf);
   char *spr;
@@ -213,11 +213,11 @@ get_field_special (struct string_buf *buf, long instr,
 static unsigned long
 read_insn_microblaze (bfd_vma memaddr,
 		      struct disassemble_info *info,
-		      const struct op_code_struct **opr)
+		      struct op_code_struct **opr)
 {
   unsigned char       ibytes[4];
   int                 status;
-  const struct op_code_struct *op;
+  struct op_code_struct *op;
   unsigned long inst;
 
   status = info->read_memory_func (memaddr, ibytes, 4, info);
@@ -253,7 +253,7 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   fprintf_ftype print_func = info->fprintf_func;
   void *stream = info->stream;
   unsigned long inst, prev_inst;
-  const struct op_code_struct *op, *pop;
+  struct op_code_struct *op, *pop;
   int immval = 0;
   bool immfound = false;
   static bfd_vma prev_insn_addr = -1;	/* Init the prev insn addr.  */
@@ -496,7 +496,7 @@ get_insn_microblaze (long inst,
   		     enum microblaze_instr_type *insn_type,
   		     short *delay_slots)
 {
-  const struct op_code_struct *op;
+  struct op_code_struct *op;
   *isunsignedimm = false;
 
   /* Just a linear search of the table.  */
@@ -538,7 +538,7 @@ microblaze_get_target_address (long inst, bool immfound, int immval,
 			       bool *targetvalid,
 			       bool *unconditionalbranch)
 {
-  const struct op_code_struct *op;
+  struct op_code_struct *op;
   long targetaddr = 0;
 
   *unconditionalbranch = false;

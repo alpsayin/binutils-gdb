@@ -145,7 +145,7 @@
 
 #define MAX_OPCODES 424
 
-const struct op_code_struct
+struct op_code_struct
 {
   const char * name;
   short inst_type;            /* Registers and immediate values involved.  */
