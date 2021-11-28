@@ -433,7 +433,7 @@ const pseudo_typeS md_pseudo_table[] =
 void
 md_begin (void)
 {
-  const struct op_code_struct * opcode;
+  struct op_code_struct * opcode;
   const char *prev_name = "";
 
   opcode_hash_control = str_htab_create ();
