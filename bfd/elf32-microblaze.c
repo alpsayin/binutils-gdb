@@ -1972,7 +1972,11 @@ microblaze_elf_relax_section (bfd *abfd,
       else
 	symval += irel->r_addend;
 
-      if ((symval & 0xffff8000) == 0)
+      /* Check for imm command argument value to decide if
+       * we need full 32-bit value for next command */
+      if ((symval & 0xffff8000) == 0
+	  || (symval & 0xffff8000) == 0xffff8000)
+
 	{
 	  /* We can delete this instruction.  */
 	  sec->relax[sec->relax_count].addr = irel->r_offset;
