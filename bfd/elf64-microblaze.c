@@ -2165,6 +2165,8 @@ microblaze_elf_relax_section (bfd *abfd,
               if (1 && ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_32_NONE)
                 {
                   unsigned int val;
+		  if (ELF64_R_SYM (irelscan->r_info) >= symtab_hdr->sh_info)
+		    continue;
 
                   isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
@@ -2207,6 +2209,9 @@ microblaze_elf_relax_section (bfd *abfd,
               if (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_32 
 		   || ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_IMML_64)
                 {
+		  if (ELF64_R_SYM (irelscan->r_info) >= symtab_hdr->sh_info)
+		    continue;
+
 	          isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
                   /* Look at the reloc only if the value has been resolved.  */
@@ -2239,6 +2244,9 @@ microblaze_elf_relax_section (bfd *abfd,
                     }
 		  else if (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_32_SYM_OP_SYM)
 		    {
+                      if (ELF64_R_SYM (irelscan->r_info) >= symtab_hdr->sh_info)
+                        continue;
+
 		      isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
 		      /* Look at the reloc only if the value has been resolved.  */
@@ -2276,6 +2284,9 @@ microblaze_elf_relax_section (bfd *abfd,
 		       || (ELF32_R_TYPE (irelscan->r_info)
 				   == (int) R_MICROBLAZE_TEXTREL_32_LO))
 		{
+                  if (ELF64_R_SYM (irelscan->r_info) >= symtab_hdr->sh_info)
+                    continue;
+
 		  isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
 		  /* Look at the reloc only if the value has been resolved.  */
@@ -2321,6 +2332,9 @@ microblaze_elf_relax_section (bfd *abfd,
 	      if (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_64
           || (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_TEXTREL_64))
 		{
+                  if (ELF64_R_SYM (irelscan->r_info) >= symtab_hdr->sh_info)
+                    continue;
+
 		  isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
 		  /* Look at the reloc only if the value has been resolved.  */
@@ -2355,6 +2369,9 @@ microblaze_elf_relax_section (bfd *abfd,
 		}
 	      else if (ELF64_R_TYPE (irelscan->r_info) == (int) R_MICROBLAZE_64_PCREL)
 		{
+                  if (ELF64_R_SYM (irelscan->r_info) >= symtab_hdr->sh_info)
+                    continue;
+
 		  isym = isymbuf + ELF64_R_SYM (irelscan->r_info);
 
 		  /* Look at the reloc only if the value has been resolved.  */
