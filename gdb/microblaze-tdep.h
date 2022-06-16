@@ -19,12 +19,42 @@
 
 #ifndef MICROBLAZE_TDEP_H
 #define MICROBLAZE_TDEP_H 1
-
+#include "objfiles.h"
 #include "gdbarch.h"
 
+struct gdbarch;
+enum microblaze_abi
+  {
+    MICROBLAZE_ABI_AUTO = 0,
+    MICROBLAZE_ABI_M64,
+ };
+
+enum microblaze_abi microblaze_abi (struct gdbarch *gdbarch);
 /* Microblaze architecture-specific information.  */
 struct microblaze_gdbarch_tdep : gdbarch_tdep
 {
+};
+
+struct microblaze_gregset
+{
+   microblaze_gregset() {}
+   unsigned int gregs[32];
+   unsigned int fpregs[32];
+   unsigned int pregs[18];
+};
+
+struct gdbarch_tdep
+{
+  int dummy;		// declare something.
+
+  enum microblaze_abi microblaze_abi;
+  enum microblaze_abi found_abi;
+  /* Register sets.  */
+  struct regset *gregset;
+  size_t sizeof_gregset;
+  struct regset *fpregset;
+  size_t sizeof_fpregset;
+  int register_size;
 };
 
 /* Register numbers.  */
@@ -45,11 +75,11 @@ enum microblaze_regnum
   MICROBLAZE_R12_REGNUM,
   MICROBLAZE_R13_REGNUM,
   MICROBLAZE_R14_REGNUM,
-  MICROBLAZE_R15_REGNUM,
+  MICROBLAZE_R15_REGNUM,MICROBLAZE_PREV_PC_REGNUM = MICROBLAZE_R15_REGNUM,
   MICROBLAZE_R16_REGNUM,
   MICROBLAZE_R17_REGNUM,
   MICROBLAZE_R18_REGNUM,
-  MICROBLAZE_R19_REGNUM,
+  MICROBLAZE_R19_REGNUM,MICROBLAZE_FP_REGNUM = MICROBLAZE_R19_REGNUM,
   MICROBLAZE_R20_REGNUM,
   MICROBLAZE_R21_REGNUM,
   MICROBLAZE_R22_REGNUM,
@@ -62,7 +92,8 @@ enum microblaze_regnum
   MICROBLAZE_R29_REGNUM,
   MICROBLAZE_R30_REGNUM,
   MICROBLAZE_R31_REGNUM,
-  MICROBLAZE_PC_REGNUM,
+  MICROBLAZE_MAX_GPR_REGS,
+  MICROBLAZE_PC_REGNUM=32,
   MICROBLAZE_MSR_REGNUM,
   MICROBLAZE_EAR_REGNUM,
   MICROBLAZE_ESR_REGNUM,
@@ -87,10 +118,13 @@ enum microblaze_regnum
   MICROBLAZE_RTLBSX_REGNUM,
   MICROBLAZE_RTLBLO_REGNUM,
   MICROBLAZE_RTLBHI_REGNUM,
-  MICROBLAZE_SLR_REGNUM, MICROBLAZE_NUM_CORE_REGS = MICROBLAZE_SLR_REGNUM,
+  MICROBLAZE_SLR_REGNUM,
   MICROBLAZE_SHR_REGNUM,
-  MICROBLAZE_NUM_REGS
+  MICROBLAZE_NUM_REGS, MICROBLAZE_NUM_CORE_REGS = MICROBLAZE_NUM_REGS
 };
+
+/* Big enough to hold the size of the largest register in bytes.  */
+#define MICROBLAZE_MAX_REGISTER_SIZE   64
 
 struct microblaze_frame_cache
 {
@@ -98,6 +132,7 @@ struct microblaze_frame_cache
   CORE_ADDR base;
   CORE_ADDR pc;
 
+  CORE_ADDR saved_sp;
   /* Do we have a frame?  */
   int frameless_p;
 
@@ -114,10 +149,25 @@ struct microblaze_frame_cache
   struct trad_frame_saved_reg *saved_regs;
 };
 /* All registers are 32 bits.  */
-#define MICROBLAZE_REGISTER_SIZE 4
+//#define MICROBLAZE_REGISTER_SIZE 8
 
 /* MICROBLAZE_BREAKPOINT defines the breakpoint that should be used.
    Only used for native debugging.  */
-#define MICROBLAZE_BREAKPOINT {0xb9, 0xcc, 0x00, 0x60}
+#define MICROBLAZE_BREAKPOINT {0xba, 0x0c, 0x00, 0x18}
+#define MICROBLAZE_BREAKPOINT_LE {0x18, 0x00, 0x0c, 0xba}
+
+extern void microblaze_supply_gregset (const struct regset *regset,
+                                    struct regcache *regcache,
+                                    int regnum, const void *gregs);
+extern void microblaze_collect_gregset (const struct regset *regset,
+                                     const struct regcache *regcache,
+                                     int regnum, void *gregs);
+extern void microblaze_supply_fpregset (struct regcache *regcache,
+                                     int regnum, const void *fpregs);
+extern void microblaze_collect_fpregset (const struct regcache *regcache,
+                                      int regnum, void *fpregs);
+
+extern const struct regset * microblaze_regset_from_core_section (struct gdbarch *gdbarch,
+                                     const char *sect_name, size_t sect_size);
 
 #endif /* microblaze-tdep.h */

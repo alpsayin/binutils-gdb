@@ -36,7 +36,27 @@
 #include "frame-unwind.h"
 #include "tramp-frame.h"
 #include "linux-tdep.h"
+#include "glibc-tdep.h"
+#include "features/microblaze-linux.c"
 
+static int microblaze_debug_flag = 0;
+int MICROBLAZE_REGISTER_SIZE=4;
+
+static void
+microblaze_debug (const char *fmt, ...)
+{
+  if (microblaze_debug_flag)
+    {
+       va_list args;
+
+       va_start (args, fmt);
+       printf_unfiltered ("MICROBLAZE LINUX: ");
+       vprintf_unfiltered (fmt, args);
+       va_end (args);
+    }
+}
+
+#if 0
 static int
 microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch, 
 					   struct bp_target_info *bp_tgt)
@@ -50,16 +70,25 @@ microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch,
   /* Determine appropriate breakpoint contents and size for this address.  */
   bp = gdbarch_breakpoint_from_pc (gdbarch, &addr, &bplen);
 
+  /* Make sure we see the memory breakpoints.  */
+  scoped_restore restore_memory
+    = make_scoped_restore_show_memory_breakpoints (1);
+
   val = target_read_memory (addr, old_contents, bplen);
 
   /* If our breakpoint is no longer at the address, this means that the
      program modified the code on us, so it is wrong to put back the
      old value.  */
   if (val == 0 && memcmp (bp, old_contents, bplen) == 0)
-    val = target_write_raw_memory (addr, bp_tgt->shadow_contents, bplen);
+  {
+      val = target_write_raw_memory (addr, bp_tgt->shadow_contents, bplen);
+      microblaze_debug ("microblaze_linux_memory_remove_breakpoint writing back to memory at addr 0x%lx\n", addr);
+  }
 
   return val;
 }
+
+#endif
 
 static void
 microblaze_linux_sigtramp_cache (struct frame_info *next_frame,
@@ -112,15 +141,18 @@ static struct tramp_frame microblaze_linux_sighandler_tramp_frame =
   microblaze_linux_sighandler_cache_init
 };
 
-
 static void
 microblaze_linux_init_abi (struct gdbarch_info info,
 			   struct gdbarch *gdbarch)
 {
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  tdep->sizeof_gregset = 200;
+
   linux_init_abi (info, gdbarch, 0);
 
-  set_gdbarch_memory_remove_breakpoint (gdbarch,
-					microblaze_linux_memory_remove_breakpoint);
+ // set_gdbarch_memory_remove_breakpoint (gdbarch,
+ //					microblaze_linux_memory_remove_breakpoint);
 
   /* Shared library handling.  */
   set_solib_svr4_fetch_link_map_offsets (gdbarch,
@@ -129,12 +161,50 @@ microblaze_linux_init_abi (struct gdbarch_info info,
   /* Trampolines.  */
   tramp_frame_prepend_unwinder (gdbarch,
 				&microblaze_linux_sighandler_tramp_frame);
+
+  /* BFD target for core files.  */
+  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+    {
+      if (info.bfd_arch_info->mach == bfd_mach_microblaze64) {
+          set_gdbarch_gcore_bfd_target (gdbarch, "elf64-microblaze");
+          MICROBLAZE_REGISTER_SIZE=8;
+        }
+      else
+        set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblaze");
+    }
+  else
+    {
+      if (info.bfd_arch_info->mach == bfd_mach_microblaze64) {
+          set_gdbarch_gcore_bfd_target (gdbarch, "elf64-microblazeel");
+          MICROBLAZE_REGISTER_SIZE=8;
+        }
+      else
+        set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblazeel");
+    }
+
+    switch (info.bfd_arch_info->mach)
+    {
+    case bfd_mach_microblaze64:
+      set_gdbarch_ptr_bit (gdbarch, 64);
+    break;
+    }
+
+  /* Shared library handling.  */
+  set_gdbarch_skip_trampoline_code (gdbarch, find_solib_trampoline_target);
+  set_gdbarch_skip_solib_resolver (gdbarch, glibc_skip_solib_resolver);
+
+  /* Enable TLS support.  */
+  set_gdbarch_fetch_tls_load_module_address (gdbarch,
+                                             svr4_fetch_objfile_link_map);
 }
 
 void _initialize_microblaze_linux_tdep ();
 void
 _initialize_microblaze_linux_tdep ()
 {
-  gdbarch_register_osabi (bfd_arch_microblaze, 0, GDB_OSABI_LINUX, 
+  gdbarch_register_osabi (bfd_arch_microblaze, bfd_mach_microblaze, GDB_OSABI_LINUX, 
 			  microblaze_linux_init_abi);
+  gdbarch_register_osabi (bfd_arch_microblaze, bfd_mach_microblaze64, GDB_OSABI_LINUX, 
+			  microblaze_linux_init_abi);
+  initialize_tdesc_microblaze_linux ();
 }

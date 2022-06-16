@@ -373,6 +373,14 @@
    unofficial e_machine number should eventually ask registry@sco.com for
    an officially blessed number to be added to the list above.	*/
 
+/* Microblaze64 magic number. Original Microblaze64 patch in meta-xilinx repo
+ * tries to allocate 248, not-only ignoring the advice above but even trying to
+ * allocate from an arbitrary empty slot, which then clashes with EM_GRAPHCORE_IPU.
+ * We re-alloc it to a random here, which will cause incompatibilities between
+ * Zephyr-gcc compiled ELFs and Vitis-gcc, but that's something Xilinx should resolve.
+ */
+#define EM_MB_64  0xbaac
+
 /* AVR magic number.  Written in the absense of an ABI.  */
 #define EM_AVR_OLD		0x1057
 
