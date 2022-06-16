@@ -186,6 +186,14 @@ case "${gdbserver_host}" in
 			srv_linux_usrregs=yes
 			srv_linux_thread_db=yes
 			;;
+  microblaze*-*-linux*)	srv_regobj="microblaze-linux.o"
+			srv_tgtobj="linux-low.o linux-osdata.o linux-microblaze-low.o "
+			srv_tgtobj="${srv_tgtobj} linux-procfs.o linux-ptrace.o"
+			srv_xmlfiles="microblaze-linux.xml"
+			srv_linux_regsets=yes
+			srv_linux_usrregs=yes
+			srv_linux_thread_db=yes
+			;;
   or1k*-*-linux*)	srv_regobj="or1k-linux.o"
 			srv_tgtobj="$srv_linux_obj linux-or1k-low.o"
 			srv_xmlfiles="or1k-linux.xml"
