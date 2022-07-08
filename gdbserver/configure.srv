@@ -189,6 +189,7 @@ case "${gdbserver_host}" in
   microblaze*-*-linux*)	srv_regobj="microblaze-linux.o"
 			srv_tgtobj="$srv_linux_obj linux-microblaze-low.o "
 			srv_xmlfiles="microblaze-linux.xml"
+			srv_xmlfiles="${srv_xmlfiles} microblaze-core.xml"
 			srv_linux_regsets=yes
 			srv_linux_usrregs=yes
 			srv_linux_thread_db=yes

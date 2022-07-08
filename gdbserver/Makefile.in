@@ -179,7 +179,7 @@ SFILES = \
 	$(srcdir)/linux-ia64-low.cc \
 	$(srcdir)/linux-low.cc \
 	$(srcdir)/linux-m68k-low.cc \
-        $(srcdir)/linux-microblaze-low.c \
+        $(srcdir)/linux-microblaze-low.cc \
  	$(srcdir)/linux-mips-low.cc \
 	$(srcdir)/linux-nios2-low.cc \
 	$(srcdir)/linux-or1k-low.cc \
@@ -221,7 +221,6 @@ SFILES = \
 	$(srcdir)/../gdb/nat/linux-namespaces.c \
 	$(srcdir)/../gdb/nat/linux-osdata.c \
 	$(srcdir)/../gdb/nat/linux-personality.c \
-        $(srcdir)/../gdb/nat/microblaze-linux.c \
 	$(srcdir)/../gdb/nat/mips-linux-watch.c \
 	$(srcdir)/../gdb/nat/ppc-linux.c \
 	$(srcdir)/../gdb/nat/riscv-linux-tdesc.c \
@@ -561,8 +560,6 @@ target/%.o: ../gdb/target/%.c
 
 %-generated.cc: ../gdb/regformats/rs6000/%.dat $(regdat_sh)
 	$(ECHO_REGDAT) $(SHELL) $(regdat_sh) $< $@
-microblaze-linux.c : $(srcdir)/../regformats/reg-microblaze.dat $(regdat_sh)
-	$(ECHO_REGDAT) $(SHELL) $(regdat_sh) $(srcdir)/../regformats/reg-microblaze.dat microblaze-linux.c
 
 #
 # Dependency tracking.

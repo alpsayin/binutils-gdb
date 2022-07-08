@@ -47,6 +47,7 @@
 WHICH = mips-linux mips-dsp-linux \
 	microblaze-with-stack-protect \
 	microblaze64-with-stack-protect \
+	microblaze-linux \
 	mips64-linux mips64-dsp-linux \
 	nios2-linux \
 	or1k-linux \

@@ -7,6 +7,7 @@
 
 <!DOCTYPE target SYSTEM "gdb-target.dtd">
 <target>
+  <architecture>microblaze</architecture>
   <osabi>GNU/Linux</osabi>
   <xi:include href="microblaze-core.xml"/>
 </target>
