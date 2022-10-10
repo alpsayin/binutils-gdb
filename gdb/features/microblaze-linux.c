@@ -5,14 +5,16 @@
 #include "osabi.h"
 #include "target-descriptions.h"
 
-struct target_desc *tdesc_microblaze;
+struct target_desc *tdesc_microblaze_linux;
 static void
-initialize_tdesc_microblaze (void)
+initialize_tdesc_microblaze_linux (void)
 {
   target_desc_up result = allocate_target_description ();
   struct tdesc_feature *feature;
+  set_tdesc_architecture (result.get(), bfd_scan_arch ("microblaze"));
+  set_tdesc_osabi (result.get(), osabi_from_tdesc_string ("GNU/Linux"));
 
-  feature = tdesc_create_feature (result.get (), "org.gnu.gdb.microblaze.core");
+  feature = tdesc_create_feature (result.get(), "org.gnu.gdb.microblaze.core");
   tdesc_create_reg (feature, "r0", 0, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r1", 1, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r2", 2, 1, NULL, 32, "int");
@@ -73,5 +75,5 @@ initialize_tdesc_microblaze (void)
   tdesc_create_reg (feature, "slr", 57, 1, NULL, 64, "uint64");
   tdesc_create_reg (feature, "shr", 58, 1, NULL, 64, "uint64");
 
-  tdesc_microblaze = result.release ();
+  tdesc_microblaze_linux = result.release();
 }
