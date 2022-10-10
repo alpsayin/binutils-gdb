@@ -46,6 +46,7 @@
 # List of .dat files to create in ../regformats/
 WHICH = mips-linux mips-dsp-linux \
 	mips64-linux mips64-dsp-linux \
+	microblaze-linux \
 	nios2-linux \
 	or1k-linux \
 	rs6000/powerpc-32 \
