@@ -285,6 +285,7 @@ microblaze_analyze_prologue (struct gdbarch *gdbarch, CORE_ADDR pc,
 	  cache->frameless_p = 0; /* Frame found.  */
 	  save_hidden_pointer_found = 0;
 	  non_stack_instruction_found = 0;
+          cache->register_offsets[rd] = -imm;
 	  continue;
 	}
       else if (IS_SPILL_SP(op, rd, ra))
@@ -431,14 +432,16 @@ microblaze_skip_prologue (struct gdbarch *gdbarch, CORE_ADDR start_pc)
   if (find_pc_partial_function (start_pc, NULL, &func_start, &func_end))
     {
       sal = find_pc_line (func_start, 0);
-
-      if (sal.end < func_end
-	  && start_pc <= sal.end)
+ 
+      if (sal.line !=0 && sal.end <= func_end  && start_pc <= sal.end) {
 	start_pc = sal.end;
+    microblaze_debug("start_pc is %d\t sal.end is %d\t func_end is %d\t",start_pc,sal.end,func_end);
+    }
     }
 
   ostart_pc = microblaze_analyze_prologue (gdbarch, func_start, 0xffffffffUL, 
 					   &cache);
+
 
   if (ostart_pc > start_pc)
     return ostart_pc;
@@ -453,6 +456,7 @@ microblaze_frame_cache (struct frame_info *next_frame, void **this_cache)
   struct microblaze_frame_cache *cache;
   struct gdbarch *gdbarch = get_frame_arch (next_frame);
   int rn;
+  CORE_ADDR current_pc;
 
   if (*this_cache)
     return (struct microblaze_frame_cache *) *this_cache;
@@ -466,10 +470,17 @@ microblaze_frame_cache (struct frame_info *next_frame, void **this_cache)
     cache->register_offsets[rn] = -1;
 
   /* Call for side effects.  */
-  get_frame_func (next_frame);
+  cache->pc = get_frame_func (next_frame);
 
-  cache->pc = get_frame_address_in_block (next_frame);
-
+//  cache->pc = get_frame_address_in_block (next_frame);
+  current_pc = get_frame_pc (next_frame);
+  if (cache->pc)
+     microblaze_analyze_prologue (gdbarch, cache->pc, current_pc, cache);
+  
+  cache->saved_sp = cache->base + cache->framesize;
+  cache->register_offsets[MICROBLAZE_PREV_PC_REGNUM] = cache->base;
+  cache->register_offsets[MICROBLAZE_SP_REGNUM] = cache->saved_sp;
+  
   return cache;
 }
 
@@ -494,6 +505,25 @@ microblaze_frame_prev_register (struct frame_info *this_frame,
   struct microblaze_frame_cache *cache =
     microblaze_frame_cache (this_frame, this_cache);
 
+if ((regnum == MICROBLAZE_SP_REGNUM &&
+      cache->register_offsets[MICROBLAZE_SP_REGNUM])
+      || (regnum == MICROBLAZE_FP_REGNUM &&
+      cache->register_offsets[MICROBLAZE_SP_REGNUM]))
+
+     return frame_unwind_got_constant (this_frame, regnum,
+                                       cache->register_offsets[MICROBLAZE_SP_REGNUM]);
+
+if (regnum == MICROBLAZE_PC_REGNUM)
+{
+      regnum = 15;
+      return frame_unwind_got_memory (this_frame, regnum,
+                                      cache->register_offsets[MICROBLAZE_PREV_PC_REGNUM]);
+
+}
+if (regnum == MICROBLAZE_SP_REGNUM)
+        regnum = 1;
+#if 0
+
   if (cache->frameless_p)
     {
       if (regnum == MICROBLAZE_PC_REGNUM)
@@ -506,7 +536,9 @@ microblaze_frame_prev_register (struct frame_info *this_frame,
   else
     return trad_frame_get_prev_register (this_frame, cache->saved_regs,
 					 regnum);
-
+#endif
+  return trad_frame_get_prev_register (this_frame, cache->saved_regs,
+					regnum); 
 }
 
 static const struct frame_unwind microblaze_frame_unwind =
@@ -622,7 +654,106 @@ microblaze_stabs_argument_has_addr (struct gdbarch *gdbarch, struct type *type)
   return (TYPE_LENGTH (type) == 16);
 }
 
-
+#if 1 
+static std::vector<CORE_ADDR>
+microblaze_software_single_step (struct regcache *regcache)
+{
+  struct gdbarch *arch = regcache->arch ();
+  //struct gdbarch_tdep *tdep = gdbarch_tdep (arch);
+  static int le_breakp[] = MICROBLAZE_BREAKPOINT_LE;
+  static int be_breakp[] = MICROBLAZE_BREAKPOINT;
+  enum bfd_endian byte_order = gdbarch_byte_order (arch);
+  int *breakp = byte_order == BFD_ENDIAN_BIG ? be_breakp : le_breakp;
+//  std::vector<CORE_ADDR> ret = NULL;
+
+ /* Save the address and the values of the next_pc and the target */
+  static struct sstep_breaks
+  {
+    CORE_ADDR address;
+    bfd_boolean valid;
+    /* Shadow contents.  */
+    char data[INST_WORD_SIZE];
+  } stepbreaks[2];
+ int ii;
+
+      CORE_ADDR pc;
+      std::vector<CORE_ADDR> next_pcs;
+      long insn;
+      enum microblaze_instr minstr;
+      bfd_boolean isunsignednum;
+      enum microblaze_instr_type insn_type;
+      short delay_slots;
+      int imm;
+      bfd_boolean immfound = FALSE;
+
+     /* Set a breakpoint at the next instruction */
+      /* If the current instruction is an imm, set it at the inst after */
+      /* If the instruction has a delay slot, skip the delay slot */
+      pc = regcache_read_pc (regcache);
+      insn = microblaze_fetch_instruction (pc);
+      minstr = get_insn_microblaze (insn, &isunsignednum, &insn_type, &delay_slots);
+      if (insn_type == immediate_inst)
+	{
+	  int rd, ra, rb;
+	  immfound = TRUE;
+	  minstr = microblaze_decode_insn (insn, &rd, &ra, &rb, &imm);
+	  pc = pc + INST_WORD_SIZE;
+	  insn = microblaze_fetch_instruction (pc);
+	  minstr = get_insn_microblaze (insn, &isunsignednum, &insn_type, &delay_slots);
+	}
+      stepbreaks[0].address = pc + (delay_slots * INST_WORD_SIZE) + INST_WORD_SIZE;
+      if (insn_type != return_inst) {
+	stepbreaks[0].valid = TRUE;
+      } else {
+	stepbreaks[0].valid = FALSE;
+      }
+
+      microblaze_debug ("single-step insn_type=%x insn=%x\n", insn_type, insn);
+      /* Now check for branch or return instructions */
+      if (insn_type == branch_inst || insn_type == return_inst) {
+	int limm;
+	int lrd, lra, lrb;
+	int ra, rb;
+	bfd_boolean targetvalid;
+	bfd_boolean unconditionalbranch;
+	microblaze_decode_insn(insn, &lrd, &lra, &lrb, &limm);
+	if (lra >= 0 && lra < MICROBLAZE_NUM_REGS)
+	  ra = regcache_raw_get_unsigned(regcache, lra);
+	else
+	  ra = 0;
+	if (lrb >= 0 && lrb < MICROBLAZE_NUM_REGS)
+	  rb = regcache_raw_get_unsigned(regcache, lrb);
+	else
+	  rb = 0;
+	stepbreaks[1].address = microblaze_get_target_address (insn, immfound, imm, pc, ra, rb, &targetvalid, &unconditionalbranch);
+        microblaze_debug ("single-step uncondbr=%d targetvalid=%d target=%x\n", unconditionalbranch, targetvalid, stepbreaks[1].address);
+	if (unconditionalbranch)
+	  stepbreaks[0].valid = FALSE; /* This is a unconditional branch: will not come to the next address */
+	if (targetvalid && (stepbreaks[0].valid == FALSE ||
+			    (stepbreaks[0].address != stepbreaks[1].address))
+	                && (stepbreaks[1].address != pc)) {
+	  stepbreaks[1].valid = TRUE;
+	} else {
+	  stepbreaks[1].valid = FALSE;
+	}
+      } else {
+	stepbreaks[1].valid = FALSE;
+      }
+
+      /* Insert the breakpoints */
+      for (ii = 0; ii < 2; ++ii)
+        {
+
+          /* ignore invalid breakpoint. */
+          if (stepbreaks[ii].valid) {
+           // VEC_safe_push (CORE_ADDR, next_pcs, stepbreaks[ii].address);;
+            next_pcs.push_back (stepbreaks[ii].address);
+	  }
+	}
+    return next_pcs;
+}
+#endif
+
 static int dwarf2_to_reg_map[78] =
 { 0  /* r0  */,   1  /* r1  */,   2  /* r2  */,   3  /* r3  */,  /*  0- 3 */
   4  /* r4  */,   5  /* r5  */,   6  /* r6  */,   7  /* r7  */,  /*  4- 7 */
@@ -789,6 +920,8 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_sw_breakpoint_from_kind (gdbarch,
 				       microblaze_breakpoint::bp_from_kind);
   set_gdbarch_memory_remove_breakpoint (gdbarch, microblaze_linux_memory_remove_breakpoint);
+
+  set_gdbarch_software_single_step (gdbarch, microblaze_software_single_step);
 
   set_gdbarch_frame_args_skip (gdbarch, 8);
 

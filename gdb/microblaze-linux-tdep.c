@@ -37,6 +37,7 @@
 #include "tramp-frame.h"
 #include "linux-tdep.h"
 #include "glibc-tdep.h"
+#include "features/microblaze-linux.c"
 
 static int microblaze_debug_flag = 0;
 
@@ -179,4 +180,5 @@ _initialize_microblaze_linux_tdep ()
 {
   gdbarch_register_osabi (bfd_arch_microblaze, 0, GDB_OSABI_LINUX, 
 			  microblaze_linux_init_abi);
+  initialize_tdesc_microblaze_linux ();
 }
