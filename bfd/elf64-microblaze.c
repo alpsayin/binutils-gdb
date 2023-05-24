@@ -751,18 +751,6 @@ microblaze_elf_info_to_howto (bfd * abfd,
   return true;
 }
 
-/* Relax table contains information about instructions which can
-   be removed by relaxation -- replacing a long address with a
-   short address.  */
-struct relax_table
-{
-  /* Address where bytes may be deleted.  */
-  bfd_vma addr;
-
-  /* Number of bytes to be deleted.  */
-  size_t size;
-};
-
 struct _microblaze_elf_section_data
 {
   struct bfd_elf_section_data elf;
