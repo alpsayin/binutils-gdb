@@ -36,6 +36,23 @@
 #include "frame-unwind.h"
 #include "tramp-frame.h"
 #include "linux-tdep.h"
+#include "glibc-tdep.h"
+
+static int microblaze_debug_flag = 0;
+
+static void
+microblaze_debug (const char *fmt, ...)
+{
+  if (microblaze_debug_flag)
+    {
+       va_list args;
+
+       va_start (args, fmt);
+       printf_unfiltered ("MICROBLAZE LINUX: ");
+       vprintf_unfiltered (fmt, args);
+       va_end (args);
+    }
+}
 
 static int
 microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch, 
@@ -50,13 +67,20 @@ microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch,
   /* Determine appropriate breakpoint contents and size for this address.  */
   bp = gdbarch_breakpoint_from_pc (gdbarch, &addr, &bplen);
 
+  /* Make sure we see the memory breakpoints.  */
+  scoped_restore restore_memory
+    = make_scoped_restore_show_memory_breakpoints (1);
+
   val = target_read_memory (addr, old_contents, bplen);
 
   /* If our breakpoint is no longer at the address, this means that the
      program modified the code on us, so it is wrong to put back the
      old value.  */
   if (val == 0 && memcmp (bp, old_contents, bplen) == 0)
-    val = target_write_raw_memory (addr, bp_tgt->shadow_contents, bplen);
+  {
+      val = target_write_raw_memory (addr, bp_tgt->shadow_contents, bplen);
+      microblaze_debug ("microblaze_linux_memory_remove_breakpoint writing back to memory at addr 0x%lx\n", addr);
+  }
 
   return val;
 }
@@ -112,12 +136,15 @@ static struct tramp_frame microblaze_linux_sighandler_tramp_frame =
   microblaze_linux_sighandler_cache_init
 };
 
-
 static void
 microblaze_linux_init_abi (struct gdbarch_info info,
 			   struct gdbarch *gdbarch)
 {
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  tdep->sizeof_gregset = 200;
   linux_init_abi (info, gdbarch, 0);
+
 
   set_gdbarch_memory_remove_breakpoint (gdbarch,
 					microblaze_linux_memory_remove_breakpoint);
@@ -129,6 +156,21 @@ microblaze_linux_init_abi (struct gdbarch_info info,
   /* Trampolines.  */
   tramp_frame_prepend_unwinder (gdbarch,
 				&microblaze_linux_sighandler_tramp_frame);
+
+  /* BFD target for core files.  */
+  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+    set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblaze");
+  else
+    set_gdbarch_gcore_bfd_target (gdbarch, "elf32-microblazeel");
+
+
+  /* Shared library handling.  */
+  set_gdbarch_skip_trampoline_code (gdbarch, find_solib_trampoline_target);
+  set_gdbarch_skip_solib_resolver (gdbarch, glibc_skip_solib_resolver);
+
+  /* Enable TLS support.  */
+  set_gdbarch_fetch_tls_load_module_address (gdbarch,
+                                             svr4_fetch_objfile_link_map);
 }
 
 void _initialize_microblaze_linux_tdep ();

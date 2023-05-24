@@ -128,7 +128,38 @@ microblaze_fetch_instruction (CORE_ADDR pc)
 constexpr gdb_byte microblaze_break_insn[] = MICROBLAZE_BREAKPOINT;
 
 typedef BP_MANIPULATION (microblaze_break_insn) microblaze_breakpoint;
+static int
+microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch,
+				    struct bp_target_info *bp_tgt)
+{
+  CORE_ADDR addr = bp_tgt->placed_address;
+  const unsigned char *bp;
+  int val;
+  int bplen;
+  gdb_byte old_contents[BREAKPOINT_MAX];
 
+  /* Determine appropriate breakpoint contents and size for this address.  */
+  bp = gdbarch_breakpoint_from_pc (gdbarch, &addr, &bplen);
+  if (bp == NULL)
+    error (_("Software breakpoints not implemented for this target."));
+
+  /* Make sure we see the memory breakpoints.  */
+  scoped_restore restore_memory
+    = make_scoped_restore_show_memory_breakpoints (1);
+
+  val = target_read_memory (addr, old_contents, bplen);
+
+  /* If our breakpoint is no longer at the address, this means that the
+     program modified the code on us, so it is wrong to put back the
+     old value.  */
+  if (val == 0 && memcmp (bp, old_contents, bplen) == 0)
+  {
+    val = target_write_raw_memory (addr, bp_tgt->shadow_contents, bplen);
+    microblaze_debug ("microblaze_linux_memory_remove_breakpoint writing back to memory at addr 0x%lx\n", addr);
+  }
+
+  return val;
+}
 
 /* Allocate and initialize a frame cache.  */
 
@@ -635,6 +666,43 @@ microblaze_register_g_packet_guesses (struct gdbarch *gdbarch)
 				  tdesc_microblaze_with_stack_protect);
 }
 
+void
+microblaze_supply_gregset (const struct regset *regset,
+                        struct regcache *regcache,
+                        int regnum, const void *gregs)
+{
+  const unsigned int *regs = (const unsigned int *)gregs;
+  if (regnum >= 0)
+    regcache->raw_supply (regnum, regs + regnum);
+
+  if (regnum == -1) {
+    int i;
+
+    for (i = 0; i < 50; i++) {
+      regcache->raw_supply (i, regs + i);
+    }
+  }
+}
+
+
+/* Return the appropriate register set for the core section identified
+   by SECT_NAME and SECT_SIZE.  */
+
+static void
+microblaze_iterate_over_regset_sections (struct gdbarch *gdbarch,
+                                     iterate_over_regset_sections_cb *cb,
+                                     void *cb_data,
+                                     const struct regcache *regcache)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  cb(".reg", tdep->sizeof_gregset, tdep->sizeof_gregset, tdep->gregset, NULL, cb_data);
+
+  cb(".reg2", tdep->sizeof_fpregset, tdep->sizeof_fpregset, tdep->fpregset, NULL, cb_data);
+}
+
+
+
 static struct gdbarch *
 microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 {
@@ -687,6 +755,10 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   microblaze_gdbarch_tdep *tdep = new microblaze_gdbarch_tdep;
   gdbarch = gdbarch_alloc (&info, tdep);
 
+  tdep->gregset = NULL;
+  tdep->sizeof_gregset = 0;
+  tdep->fpregset = NULL;
+  tdep->sizeof_fpregset = 0;
   set_gdbarch_long_double_bit (gdbarch, 128);
 
   set_gdbarch_num_regs (gdbarch, MICROBLAZE_NUM_REGS);
@@ -716,6 +788,7 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 				       microblaze_breakpoint::kind_from_pc);
   set_gdbarch_sw_breakpoint_from_kind (gdbarch,
 				       microblaze_breakpoint::bp_from_kind);
+  set_gdbarch_memory_remove_breakpoint (gdbarch, microblaze_linux_memory_remove_breakpoint);
 
   set_gdbarch_frame_args_skip (gdbarch, 8);
 
@@ -734,6 +807,13 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   frame_base_append_sniffer (gdbarch, dwarf2_frame_base_sniffer);
   if (tdesc_data != NULL)
     tdesc_use_registers (gdbarch, tdesc, std::move (tdesc_data));
+  //frame_base_append_sniffer (gdbarch, microblaze_frame_sniffer);
+
+  /* If we have register sets, enable the generic core file support.  */
+  if (tdep->gregset) {
+    set_gdbarch_iterate_over_regset_sections (gdbarch,
+                                          microblaze_iterate_over_regset_sections);
+  }
 
   return gdbarch;
 }
@@ -755,5 +835,6 @@ When non-zero, microblaze specific debugging is enabled."),
 			     NULL,
 			     NULL,
 			     &setdebuglist, &showdebuglist);
+
 
 }
