@@ -2389,9 +2389,9 @@ microblaze_elf_relax_section (bfd *abfd,
   if (contents != NULL
       && elf_section_data (sec)->this_hdr.contents != contents)
     free (contents);
-  free (sdata->relax);
-  sdata->relax = NULL;
-  sdata->relax_count = 0;
+  free (sec->relax);
+  sec->relax = NULL;
+  sec->relax_count = 0;
   return false;
 }
 
