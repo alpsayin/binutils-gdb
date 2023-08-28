@@ -193,15 +193,15 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
           0,			/* Rightshift.  */
           2,			/* Size (0 = byte, 1 = short, 2 = long).  */
           32,			/* Bitsize.  */
-          TRUE,			/* PC_relative.  */
+          true,			/* PC_relative.  */
           0,			/* Bitpos.  */
           complain_overflow_bitfield,  /* Complain on overflow.  */
           NULL,                  /* Special Function.  */
           "R_MICROBLAZE_32_NONE",/* Name.  */
-          FALSE,		/* Partial Inplace.  */
+          false,		/* Partial Inplace.  */
           0,			/* Source Mask.  */
           0,			/* Dest Mask.  */
-          FALSE),		/* PC relative offset?  */
+          false),		/* PC relative offset?  */
 
    HOWTO (R_MICROBLAZE_64_NONE,	/* Type.  */
 	  0,			/* Rightshift.  */
