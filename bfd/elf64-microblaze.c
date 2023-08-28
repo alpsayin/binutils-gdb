@@ -2910,8 +2910,12 @@ microblaze_elf_adjust_dynamic_symbol (struct bfd_link_info *info,
 				      struct elf_link_hash_entry *h)
 {
   struct elf64_mb_link_hash_table *htab;
+  struct elf64_mb_link_hash_entry * eh;
+  struct elf64_mb_dyn_relocs *p;
+  asection *sdynbss;
   asection *s, *srel;
   unsigned int power_of_two;
+  bfd *dynobj;
 
   htab = elf64_mb_hash_table (info);
   if (htab == NULL)
