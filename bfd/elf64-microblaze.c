@@ -41,80 +41,79 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
 {
    /* This reloc does nothing.  */
    HOWTO (R_MICROBLAZE_NONE,	/* Type.  */
-          0,			/* Rightshift.  */
-          3,			/* Size (0 = byte, 1 = short, 2 = long).  */
-          0,			/* Bitsize.  */
-          false,		/* PC_relative.  */
-          0,			/* Bitpos.  */
-          complain_overflow_dont,  /* Complain on overflow.  */
-          NULL,                  /* Special Function.  */
-          "R_MICROBLAZE_NONE", 	/* Name.  */
-          false,		/* Partial Inplace.  */
-          0,			/* Source Mask.  */
-          0,			/* Dest Mask.  */
-          false),		/* PC relative offset?  */
+	  0,			/* Rightshift.  */
+	  0,			/* Size.  */
+	  0,			/* Bitsize.  */
+	  false,		/* PC_relative.  */
+	  0,			/* Bitpos.  */
+	  complain_overflow_dont,  /* Complain on overflow.  */
+	  NULL,			 /* Special Function.  */
+	  "R_MICROBLAZE_NONE",	/* Name.  */
+	  false,		/* Partial Inplace.  */
+	  0,			/* Source Mask.  */
+	  0,			/* Dest Mask.  */
+	  false),		/* PC relative offset?  */
 
    /* A standard 32 bit relocation.  */
-   HOWTO (R_MICROBLAZE_32,     	/* Type.  */
-          0,			/* Rightshift.  */
-          2,			/* Size (0 = byte, 1 = short, 2 = long).  */
-          32,			/* Bitsize.  */
-          false,		/* PC_relative.  */
-          0,			/* Bitpos.  */
-          complain_overflow_bitfield, /* Complain on overflow.  */
-          bfd_elf_generic_reloc,/* Special Function.  */
-          "R_MICROBLAZE_32",   	/* Name.  */
-          false,		/* Partial Inplace.  */
-          0,			/* Source Mask.  */
-          0xffffffff,		/* Dest Mask.  */
-          false), 		/* PC relative offset?  */
+   HOWTO (R_MICROBLAZE_32,	/* Type.  */
+	  0,			/* Rightshift.  */
+	  4,			/* Size.  */
+	  32,			/* Bitsize.  */
+	  false,		/* PC_relative.  */
+	  0,			/* Bitpos.  */
+	  complain_overflow_bitfield, /* Complain on overflow.  */
+	  bfd_elf_generic_reloc,/* Special Function.  */
+	  "R_MICROBLAZE_32",	/* Name.  */
+	  false,		/* Partial Inplace.  */
+	  0,			/* Source Mask.  */
+	  0xffffffff,		/* Dest Mask.  */
+	  false),		/* PC relative offset?  */
 
    /* A standard PCREL 32 bit relocation.  */
    HOWTO (R_MICROBLAZE_32_PCREL,/* Type.  */
-          0,			/* Rightshift.  */
-          2,			/* Size (0 = byte, 1 = short, 2 = long).  */
-          32,			/* Bitsize.  */
-          true,			/* PC_relative.  */
-          0,			/* Bitpos.  */
-          complain_overflow_bitfield, /* Complain on overflow.  */
-          bfd_elf_generic_reloc,/* Special Function.  */
-          "R_MICROBLAZE_32_PCREL",   	/* Name.  */
-          true,			/* Partial Inplace.  */
-          0,			/* Source Mask.  */
-          0xffffffff,		/* Dest Mask.  */
-          true), 		/* PC relative offset?  */
+	  0,			/* Rightshift.  */
+	  4,			/* Size.  */
+	  32,			/* Bitsize.  */
+	  true,			/* PC_relative.  */
+	  0,			/* Bitpos.  */
+	  complain_overflow_bitfield, /* Complain on overflow.  */
+	  bfd_elf_generic_reloc,/* Special Function.  */
+	  "R_MICROBLAZE_32_PCREL",	/* Name.  */
+	  true,			/* Partial Inplace.  */
+	  0,			/* Source Mask.  */
+	  0xffffffff,		/* Dest Mask.  */
+	  true),		/* PC relative offset?  */
 
    /* A 64 bit PCREL relocation.  Table-entry not really used.  */
    HOWTO (R_MICROBLAZE_64_PCREL,/* Type.  */
-          0,			/* Rightshift.  */
-          4,			/* Size (0 = byte, 1 = short, 2 = long).  */
-          64,			/* Bitsize.  */
-          true,			/* PC_relative.  */
-          0,			/* Bitpos.  */
-          complain_overflow_dont, /* Complain on overflow.  */
-          bfd_elf_generic_reloc,/* Special Function.  */
-          "R_MICROBLAZE_64_PCREL", 	/* Name.  */
-          false,		/* Partial Inplace.  */
-          0,			/* Source Mask.  */
-          0x0000ffff,		/* Dest Mask.  */
-          true), 		/* PC relative offset?  */
+	  0,			/* Rightshift.  */
+	  4,			/* Size.  */
+	  16,			/* Bitsize.  */
+	  true,			/* PC_relative.  */
+	  0,			/* Bitpos.  */
+	  complain_overflow_dont, /* Complain on overflow.  */
+	  bfd_elf_generic_reloc,/* Special Function.  */
+	  "R_MICROBLAZE_64_PCREL",	/* Name.  */
+	  false,		/* Partial Inplace.  */
+	  0,			/* Source Mask.  */
+	  0x0000ffff,		/* Dest Mask.  */
+	  true),		/* PC relative offset?  */
 
    /* The low half of a PCREL 32 bit relocation.  */
-   HOWTO (R_MICROBLAZE_32_PCREL_LO,   	/* Type.  */
-          0,			/* Rightshift.  */
-          2,			/* Size (0 = byte, 1 = short, 2 = long).  */
-          16,			/* Bitsize.  */
-          true,			/* PC_relative.  */
-          0,			/* Bitpos.  */
-          complain_overflow_signed, /* Complain on overflow.  */
-          bfd_elf_generic_reloc,	/* Special Function.  */
-          "R_MICROBLAZE_32_PCREL_LO", 	/* Name.  */
-          false,		/* Partial Inplace.  */
-          0,			/* Source Mask.  */
-          0x0000ffff,		/* Dest Mask.  */
-          true), 		/* PC relative offset?  */
+   HOWTO (R_MICROBLAZE_32_PCREL_LO,	/* Type.  */
+	  0,			/* Rightshift.  */
+	  4,			/* Size.  */
+	  16,			/* Bitsize.  */
+	  true,			/* PC_relative.  */
+	  0,			/* Bitpos.  */
+	  complain_overflow_signed, /* Complain on overflow.  */
+	  bfd_elf_generic_reloc,	/* Special Function.  */
+	  "R_MICROBLAZE_32_PCREL_LO",	/* Name.  */
+	  false,		/* Partial Inplace.  */
+	  0,			/* Source Mask.  */
+	  0x0000ffff,		/* Dest Mask.  */
+	  true),		/* PC relative offset?  */
 
-   /* A 64 bit relocation.  Table entry not really used.  */
    HOWTO (R_MICROBLAZE_IMML_64,     	/* Type.  */
           0,			/* Rightshift.  */
           4,			/* Size (0 = byte, 1 = short, 2 = long).  */
